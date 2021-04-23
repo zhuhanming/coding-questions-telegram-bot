@@ -2,17 +2,33 @@ import html
 import json
 import traceback
 
-from telegram import ParseMode, Update
+from telegram import ForceReply, ParseMode, Update
 from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
-from src.logger import logger
+from src.services import SERVICES
+
+
+def start(update: Update, _: CallbackContext) -> None:
+    """Sends a default welcome message when the /start command is issued"""
+    user = update.effective_user
+    SERVICES.logger.info("User started: %s %s", user.id, user.full_name)
+    update.message.reply_markdown_v2(
+        fr"Hi {user.mention_markdown_v2()}\!", reply_markup=ForceReply(selective=True)
+    )
+
+
+def unknown_message(update: Update, _: CallbackContext) -> None:
+    """Sends a default message when an unknown command was issued"""
+    update.message.reply_text("Unfortunately, I don't recognise this command!")
 
 
 def error_handler(update: object, context: CallbackContext) -> None:
     """Log the error and send a telegram message to notify the developer."""
     # Log the error before we do anything else, so we can see it even if something breaks.
-    logger.error(msg="Exception while handling an update:", exc_info=context.error)
+    SERVICES.logger.error(
+        msg="Exception while handling an update:", exc_info=context.error
+    )
 
     # traceback.format_exception returns the usual python message about an exception, but as a
     # list of strings rather than a single string, so we have to join them together.
