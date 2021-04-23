@@ -8,12 +8,8 @@ from telegram.ext import (
 )
 
 from src.config import APP_CONFIG
-from src.logger import logger
-from src.url import (
-    get_question_name,
-    parse_hackerank_url_directly,
-    parse_leetcode_url_directly,
-)
+from src.services import SERVICES
+from src.utils import generate_weekly_summary
 
 URL, CONFIRM, MANUAL, THANKS = range(4)
 PLATFORMS = ["leetcode", "hackerrank"]
@@ -67,14 +63,19 @@ def confirm(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
         "This part may take a while to load.\n" "Do be patient with me!"
     )
+    is_leetcode = platform == "leetcode"
 
-    question_name = get_question_name(platform, url)
+    question_name = (
+        SERVICES.question_name_service.get_leetcode_question_name(url=url)
+        if is_leetcode
+        else SERVICES.question_name_service.get_hackerrank_question_name(url=url)
+    )
 
     if question_name is None or not question_name:
         best_effort_question_name = (
-            parse_leetcode_url_directly(url)
-            if platform == "leetcode"
-            else parse_hackerank_url_directly(url)
+            SERVICES.question_name_service.parse_leetcode_url_directly(url=url)
+            if is_leetcode
+            else SERVICES.question_name_service.parse_hackerank_url_directly(url=url)
         )
 
         if best_effort_question_name is None:
@@ -136,18 +137,33 @@ def thanks(update: Update, context: CallbackContext) -> int:
     platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
     question_name = context.user_data.get(APP_CONFIG["QUESTION_NAME_KEY"])
 
-    logger.info(
+    # Persist data to database
+    user = SERVICES.user_service.create_if_not_exists(
+        full_name=user.full_name, telegram_id=str(user.id)
+    )
+    SERVICES.question_record_service.create_question_record(
+        user_id=user["id"], platform=platform, question_name=question_name
+    )
+
+    SERVICES.logger.info(
         "User (%s, %s) added question: %s [%s]",
-        user.id,
-        user.first_name,
+        user["telegram_id"],
+        user["full_name"],
         question_name,
         platform,
     )
-    # TODO: Persist data to database
-    context.user_data.clear()
-    update.message.reply_text("Awesome! Good job with the question!")
-    # TODO: Give user an update about their current progress for the week
 
+    context.user_data.clear()
+    update.message.reply_text(
+        "Awesome! Good job with the question!", reply_markup=ReplyKeyboardRemove()
+    )
+
+    records = SERVICES.question_record_service.get_records_by_user_for_this_week(
+        user_id=user["id"]
+    )
+
+    summary = generate_weekly_summary(records)
+    update.message.reply_text(summary)
     return ConversationHandler.END
 
 
