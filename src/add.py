@@ -49,7 +49,7 @@ def url(update: Update, context: CallbackContext) -> int:
 def other(update: Update, context: CallbackContext) -> int:
     """Handles the case where the user selects Other."""
     platform = update.message.text.lower()
-    assert platform == 'other'
+    assert platform == "other"
     context.user_data[APP_CONFIG["PLATFORM_KEY"]] = platform
     update.message.reply_text(
         "Do you mind letting me know what the name of the question you attempted was?",
