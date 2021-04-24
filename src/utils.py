@@ -1,3 +1,4 @@
+from typing import List
 from src.config import APP_CONFIG
 
 SUMMARY_STRFTIME_FORMAT = "%A"
@@ -11,7 +12,7 @@ def format_platform_name(name: str) -> str:
     return "Other"
 
 
-def generate_weekly_summary(records) -> str:
+def generate_weekly_summary(records: List[dict]) -> str:
     if not records:
         return "You have not completed any questions this week!"
     summary = "Questions you have completed this week:\n\n"
@@ -29,7 +30,7 @@ def generate_weekly_summary(records) -> str:
     return summary
 
 
-def generate_user_list(chat, users) -> str:
+def generate_user_list(chat: dict, users: List[dict]) -> str:
     if not users:
         return "There are no members in this chat!\nPlease add yourself with the /add_me command."
 
