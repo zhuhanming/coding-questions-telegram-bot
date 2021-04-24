@@ -8,11 +8,13 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
 from src.config import APP_CONFIG
-from src.database import QuestionRecord, User, session_scope
+from src.database import Chat, QuestionRecord, User, session_scope
 from src.exceptions import ResourceNotFoundException
 from src.schemata import (
+    CREATE_CHAT_SCHEMA,
     CREATE_QUESTION_RECORD_SCHEMA,
     CREATE_USER_SCHEMA,
+    GET_CHAT_SCHEMA,
     GET_QUESTION_RECORD_SCHEMA,
     GET_USER_SCHEMA,
     HACKERRANK_RULE,
@@ -98,6 +100,33 @@ class QuestionRecordService:
             )
             return [question_order.asdict() for question_order in question_orders]
 
+
+class ChatService:
+    def __init__(self, config):
+        self.config = config
+
+    @validate_input(CREATE_CHAT_SCHEMA)
+    def create_if_not_exists(self, title: str, telegram_id: str) -> dict:
+        with session_scope() as session:
+            chat = session.query(Chat).filter_by(telegram_id=telegram_id).one_or_none()
+            if chat is None:
+                chat = Chat(title=title, telegram_id=telegram_id)
+                session.add(chat)
+                session.flush()
+            else:
+                chat.title = title
+
+            session.commit()
+            return chat.asdict()
+
+    @validate_input(GET_CHAT_SCHEMA)
+    def get_chat_by_telegram_id(telegram_id: str) -> dict:
+        with session_scope() as session:
+            chat = session.query(Chat).filter_by(telegram_id=telegram_id).one_or_none()
+            if chat is None:
+                raise ResourceNotFoundException()
+            chat_dict = chat.asdict()
+        return chat_dict
 
 class QuestionNameService:
     def __init__(self, config):
@@ -192,6 +221,7 @@ logging.basicConfig(
 SERVICES = Services()
 SERVICES.config = APP_CONFIG
 SERVICES.user_service = UserService(SERVICES.config)
+SERVICES.chat_service = ChatService(SERVICES.config)
 SERVICES.question_record_service = QuestionRecordService(SERVICES.config)
 SERVICES.question_name_service = QuestionNameService(SERVICES.config)
 SERVICES.logger = logging.getLogger(__name__)

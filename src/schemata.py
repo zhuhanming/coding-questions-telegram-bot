@@ -24,19 +24,23 @@ def validate_input(schema, **validator_kwargs):
 UUID_REGEX = (
     "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
 )
-TELEGRAM_ID_REGEX = "^[0-9]{9}$"
+TELEGRAM_USER_ID_REGEX = "^[0-9]+$"
 LEETCODE_REGEX = "^((https?):\/\/)?(www.)?leetcode\.com/problems+(\/[a-zA-Z0-9-]+\/?)*$"
 HACKERRANK_REGEX = (
     "^((https?):\/\/)?(www.)?hackerrank\.com/challenges+(\/[a-zA-Z0-9-]+\/?)*$"
 )
 
 UUID_RULE = {"type": "string", "regex": UUID_REGEX}
-TELEGRAM_ID_RULE = {"type": "string", "regex": TELEGRAM_ID_REGEX}
+TELEGRAM_ID_RULE = {"type": "string", "regex": TELEGRAM_USER_ID_REGEX}
 LEETCODE_RULE = {"type": "string", "regex": LEETCODE_REGEX}
 HACKERRANK_RULE = {"type": "string", "regex": HACKERRANK_REGEX}
 
 CREATE_USER_SCHEMA = {"full_name": {"type": "string"}, "telegram_id": TELEGRAM_ID_RULE}
 GET_USER_SCHEMA = {"telegram_id": TELEGRAM_ID_RULE}
+
+CREATE_CHAT_SCHEMA = {"title": {"type": "string"}, "telegram_id": {"type": "string"}}
+GET_CHAT_SCHEMA = {"telegram_id": {"type": "string"}}
+
 CREATE_QUESTION_RECORD_SCHEMA = {
     "user_id": UUID_RULE,
     "platform": {"type": "string", "allowed": ["leetcode", "hackerrank", "other"]},

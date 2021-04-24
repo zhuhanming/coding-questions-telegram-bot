@@ -5,6 +5,7 @@ from sqlalchemy import Column, DateTime, ForeignKey, String, create_engine, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.sql.schema import UniqueConstraint
 
 from src.config import APP_CONFIG
 
@@ -49,6 +50,9 @@ class User(Base):
     telegram_id = Column(String, nullable=False, unique=True)
 
     question_records = relationship("QuestionRecord", back_populates="user")
+    user_belongs_in = relationship(
+        "Belongs", back_populates="user", foreign_keys="[Belongs.user_id]"
+    )
 
 
 class QuestionRecord(Base):
@@ -59,6 +63,33 @@ class QuestionRecord(Base):
     question_name = Column(String, nullable=False)
 
     user = relationship("User", back_populates="question_records")
+
+
+class Chat(Base):
+    __tablename__ = "chats"
+
+    title = Column(String, nullable=False)
+    telegram_id = Column(String, nullable=False, unique=True)
+
+    belongs_in_chat = relationship(
+        "Belongs", back_populates="chat", foreign_keys="[Belongs.chat_id]"
+    )
+
+
+class Belong(Base):
+    __tablename__ = "belongs"
+
+    user_id = Column(UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    chat_id = Column(UUID, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
+
+    chat = relationship(
+        "Chat", back_populates="belongs_in_chat", foreign_keys=[chat_id]
+    )
+    user = relationship(
+        "User", back_populates="user_belongs_in", foreign_keys=[user_id]
+    )
+
+    __table_args__ = (UniqueConstraint("user_id", "chat_id"),)
 
 
 engine = create_engine(APP_CONFIG["DATABASE_URL"])
