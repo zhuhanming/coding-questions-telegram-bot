@@ -27,3 +27,16 @@ def generate_weekly_summary(records) -> str:
         summary += "\nAwesome! You have achieved the weekly target!\n"
 
     return summary
+
+
+def generate_user_list(chat, users) -> str:
+    if not users:
+        return "There are no members in this chat!\nPlease add yourself with the /add_me command."
+
+    message = "Members in {}:\n".format(chat["title"])
+    for user in users:
+        message += "{}\n".format(user["full_name"])
+    message += (
+        "\nIf you're not in the list, please add yourself with the /add_me command."
+    )
+    return message
