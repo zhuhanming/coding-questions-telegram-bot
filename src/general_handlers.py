@@ -2,7 +2,7 @@ import html
 import json
 import traceback
 
-from telegram import ForceReply, ParseMode, Update
+from telegram import ParseMode, Update
 from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
@@ -13,9 +13,7 @@ def start(update: Update, _: CallbackContext) -> None:
     """Sends a default welcome message when the /start command is issued"""
     user = update.effective_user
     SERVICES.logger.info("User started: %s %s", user.id, user.full_name)
-    update.message.reply_markdown_v2(
-        fr"Hi {user.mention_markdown_v2()}\!", reply_markup=ForceReply(selective=True)
-    )
+    update.message.reply_text("Hello {}!".format(user.full_name))
 
 
 def unknown_message(update: Update, _: CallbackContext) -> None:
@@ -52,8 +50,6 @@ def error_handler(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(
         chat_id=APP_CONFIG["DEVELOPER_ID"], text=message, parse_mode=ParseMode.HTML
     )
-
-
-def new_chat_member_handler(update: Update, context: CallbackContext) -> None:
-    print(update)
-    print(context)
+    update.message.reply_text(
+        "Uh oh, something went wrong! I've already informed my developer about this."
+    )
