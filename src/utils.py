@@ -12,6 +12,8 @@ def format_platform_name(name: str) -> str:
 
 
 def generate_weekly_summary(records) -> str:
+    if not records:
+        return "You have not completed any questions this week!"
     summary = "Questions you have completed this week:\n\n"
     for i, record in enumerate(records):
         summary += "{}. {} [{}] ({})\n".format(
