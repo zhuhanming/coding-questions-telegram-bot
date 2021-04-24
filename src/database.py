@@ -51,7 +51,7 @@ class User(Base):
 
     question_records = relationship("QuestionRecord", back_populates="user")
     user_belongs_in = relationship(
-        "Belongs", back_populates="user", foreign_keys="[Belongs.user_id]"
+        "Belong", back_populates="user", foreign_keys="[Belong.user_id]"
     )
 
 
@@ -72,7 +72,7 @@ class Chat(Base):
     telegram_id = Column(String, nullable=False, unique=True)
 
     belongs_in_chat = relationship(
-        "Belongs", back_populates="chat", foreign_keys="[Belongs.chat_id]"
+        "Belong", back_populates="chat", foreign_keys="[Belong.chat_id]"
     )
 
 
