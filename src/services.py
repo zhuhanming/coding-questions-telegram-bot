@@ -1,16 +1,17 @@
 import logging
 from datetime import datetime, timedelta
 from time import sleep
-from typing import Optional
+from typing import List, Optional
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
 from src.config import APP_CONFIG
-from src.database import Chat, QuestionRecord, User, session_scope
+from src.database import Belong, Chat, QuestionRecord, User, session_scope
 from src.exceptions import ResourceNotFoundException
 from src.schemata import (
+    BELONG_SCHEMA,
     CREATE_CHAT_SCHEMA,
     CREATE_QUESTION_RECORD_SCHEMA,
     CREATE_USER_SCHEMA,
@@ -19,6 +20,7 @@ from src.schemata import (
     GET_USER_SCHEMA,
     HACKERRANK_RULE,
     LEETCODE_RULE,
+    UUID_RULE,
     validate_input,
 )
 
@@ -42,7 +44,7 @@ class UserService:
             return user.asdict()
 
     @validate_input(GET_USER_SCHEMA)
-    def get_user_by_telegram_id(telegram_id: str) -> dict:
+    def get_user_by_telegram_id(self, telegram_id: str) -> dict:
         with session_scope() as session:
             user = session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
             if user is None:
@@ -120,13 +122,68 @@ class ChatService:
             return chat.asdict()
 
     @validate_input(GET_CHAT_SCHEMA)
-    def get_chat_by_telegram_id(telegram_id: str) -> dict:
+    def get_chat_by_telegram_id(self, telegram_id: str) -> dict:
         with session_scope() as session:
             chat = session.query(Chat).filter_by(telegram_id=telegram_id).one_or_none()
             if chat is None:
                 raise ResourceNotFoundException()
             chat_dict = chat.asdict()
         return chat_dict
+
+
+class BelongService:
+    def __init__(self, config):
+        self.config = config
+
+    @validate_input(BELONG_SCHEMA)
+    def add_user_to_chat_if_not_inside(self, user_id: str, chat_id: str) -> dict:
+        with session_scope() as session:
+            belong = (
+                session.query(Belong)
+                .filter_by(user_id=user_id, chat_id=chat_id)
+                .one_or_none()
+            )
+            if belong is None:
+                belong = Belong(user_id=user_id, chat_id=chat_id)
+                session.add(belong)
+                session.flush()
+            session.commit()
+            return belong.asdict()
+
+    @validate_input(BELONG_SCHEMA)
+    def remove_user_from_chat_if_inside(self, user_id: str, chat_id: str) -> dict:
+        with session_scope() as session:
+            belong = (
+                session.query(Belong)
+                .filter_by(user_id=user_id, chat_id=chat_id)
+                .one_or_none()
+            )
+            if belong is not None:
+                session.delete(belong)
+        return {}
+
+    @validate_input({"chat_id": UUID_RULE})
+    def get_users_in_chat(self, chat_id: str) -> List[dict]:
+        with session_scope() as session:
+            users = [
+                u.asdict()
+                for u in session.query(User)
+                .join(Belong, Belong.user_id == User.id)
+                .filter(Belong.chat_id == chat_id)
+                .all()
+            ]
+        return users
+
+    @validate_input(BELONG_SCHEMA)
+    def is_user_inside_chat(self, user_id: str, chat_id: str) -> bool:
+        with session_scope() as session:
+            belong = (
+                session.query(Belong)
+                .filter_by(user_id=user_id, chat_id=chat_id)
+                .one_or_none()
+            )
+            return belong is not None
+
 
 class QuestionNameService:
     def __init__(self, config):
@@ -222,6 +279,7 @@ SERVICES = Services()
 SERVICES.config = APP_CONFIG
 SERVICES.user_service = UserService(SERVICES.config)
 SERVICES.chat_service = ChatService(SERVICES.config)
+SERVICES.belong_service = BelongService(SERVICES.config)
 SERVICES.question_record_service = QuestionRecordService(SERVICES.config)
 SERVICES.question_name_service = QuestionNameService(SERVICES.config)
 SERVICES.logger = logging.getLogger(__name__)
