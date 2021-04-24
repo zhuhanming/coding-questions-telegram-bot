@@ -23,7 +23,7 @@ def unknown_message(update: Update, _: CallbackContext) -> None:
     update.message.reply_text("Unfortunately, I don't recognise this command!")
 
 
-def error_handler(update: object, context: CallbackContext) -> None:
+def error_handler(update: Update, context: CallbackContext) -> None:
     """Log the error and send a telegram message to notify the developer."""
     # Log the error before we do anything else, so we can see it even if something breaks.
     SERVICES.logger.error(
@@ -52,3 +52,8 @@ def error_handler(update: object, context: CallbackContext) -> None:
     context.bot.send_message(
         chat_id=APP_CONFIG["DEVELOPER_ID"], text=message, parse_mode=ParseMode.HTML
     )
+
+
+def new_chat_member_handler(update: Update, context: CallbackContext) -> None:
+    print(update)
+    print(context)
