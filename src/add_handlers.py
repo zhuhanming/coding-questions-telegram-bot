@@ -1,3 +1,5 @@
+from typing import Optional
+
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
     CallbackContext,
@@ -17,11 +19,19 @@ ADD_KEYBOARD = [["LeetCode", "HackerRank", "Other"]]
 CONFIRM_KEYBOARD = [["Yes", "No"]]
 
 
-def add(update: Update, _: CallbackContext) -> int:
+def add(update: Update, context: CallbackContext) -> Optional[int]:
     """Kicks off the question adding process and asks user for the platform used."""
+    user = update.effective_user
+
+    if update.message.chat.type != "private":
+        context.bot.send_message(
+            chat_id=user.id, text="Please resend /add_question here again!"
+        )
+        return
+
     update.message.reply_text(
-        "Hi! Glad to see that you've been working hard!\n"
-        "If you don't mind me asking, what platform did you use?\n"
+        "Hi {}! Glad to see that you've been working hard!\n".format(user.full_name)
+        + "If you don't mind me asking, what platform did you use?\n"
         "You can also send /cancel to cancel.",
         reply_markup=ReplyKeyboardMarkup(ADD_KEYBOARD, one_time_keyboard=True),
     )
@@ -109,7 +119,7 @@ def confirm(update: Update, context: CallbackContext) -> int:
 
 def manual(update: Update, context: CallbackContext) -> int:
     """Acknowledges the manual entry and confirms it with the user."""
-    question_name = update.message.text.title()
+    question_name = update.message.text
     update.message.reply_text(
         "Just to confirm, is your question title: {}?".format(question_name),
         reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
@@ -128,12 +138,12 @@ def thanks(update: Update, context: CallbackContext) -> int:
         update.message.reply_text(
             "Sorry that I got your question title wrong!\n"
             "Do you mind sending the name of the question here?\n"
-            "Or send /cancel to cancel"
+            "Or send /cancel to cancel."
         )
-        context.user_data.popitem(APP_CONFIG["QUESTION_NAME_KEY"])
+        del context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]]
         return MANUAL
 
-    user = update.message.from_user
+    user = update.effective_user
     platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
     question_name = context.user_data.get(APP_CONFIG["QUESTION_NAME_KEY"])
 
@@ -177,7 +187,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 
 add_conv_handler = ConversationHandler(
-    entry_points=[CommandHandler("add", add)],
+    entry_points=[CommandHandler("add_question", add)],
     states={
         URL: [
             MessageHandler(Filters.regex("^(LeetCode|HackerRank)$"), url),
