@@ -41,6 +41,8 @@ GET_USER_SCHEMA = {"telegram_id": TELEGRAM_ID_RULE}
 CREATE_CHAT_SCHEMA = {"title": {"type": "string"}, "telegram_id": {"type": "string"}}
 GET_CHAT_SCHEMA = {"telegram_id": {"type": "string"}}
 
+BELONG_SCHEMA = {"user_id": UUID_RULE, "chat_id": UUID_RULE}
+
 CREATE_QUESTION_RECORD_SCHEMA = {
     "user_id": UUID_RULE,
     "platform": {"type": "string", "allowed": ["leetcode", "hackerrank", "other"]},
