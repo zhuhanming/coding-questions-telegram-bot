@@ -1,4 +1,5 @@
 from typing import List
+
 from src.config import APP_CONFIG
 
 SUMMARY_STRFTIME_FORMAT = "%A"

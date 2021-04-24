@@ -35,7 +35,10 @@ TELEGRAM_USER_ID_RULE = {"type": "string", "regex": TELEGRAM_USER_ID_REGEX}
 LEETCODE_RULE = {"type": "string", "regex": LEETCODE_REGEX}
 HACKERRANK_RULE = {"type": "string", "regex": HACKERRANK_REGEX}
 
-CREATE_USER_SCHEMA = {"full_name": {"type": "string"}, "telegram_id": TELEGRAM_USER_ID_RULE}
+CREATE_USER_SCHEMA = {
+    "full_name": {"type": "string"},
+    "telegram_id": TELEGRAM_USER_ID_RULE,
+}
 GET_USER_SCHEMA = {"telegram_id": TELEGRAM_USER_ID_RULE}
 
 CREATE_CHAT_SCHEMA = {"title": {"type": "string"}, "telegram_id": {"type": "string"}}
