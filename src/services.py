@@ -76,7 +76,7 @@ class QuestionRecordService:
             return question_record.asdict()
 
     @validate_input(GET_QUESTION_RECORD_SCHEMA)
-    def get_all_records_by_user(self, user_id: str):
+    def get_all_records_by_user(self, user_id: str) -> List[dict]:
         with session_scope() as session:
             question_orders = (
                 session.query(QuestionRecord)
@@ -87,7 +87,7 @@ class QuestionRecordService:
             return [question_order.asdict() for question_order in question_orders]
 
     @validate_input(GET_QUESTION_RECORD_SCHEMA)
-    def get_records_by_user_for_this_week(self, user_id: str):
+    def get_records_by_user_for_this_week(self, user_id: str) -> List[dict]:
         now = datetime.now()
         monday = (now - timedelta(days=now.weekday())).replace(
             hour=0, minute=0, second=0, microsecond=0
