@@ -72,5 +72,5 @@ jobs:
             ./.github/backup/pg_backup.sh ${{ secrets.REMOTE_DIR }}
             env MANUAL_PATH=1 ./run_migrations.sh ${{ secrets.POETRY_PATH }}
             pm2 restart coding-questions-bot
-            pm2 logs --nostream
+            pm2 logs coding-questions-bot --nostream
             echo =========== Deployment Completed ===========
