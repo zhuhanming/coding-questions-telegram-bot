@@ -66,6 +66,7 @@ jobs:
           script: |
             cd ${{ secrets.REMOTE_DIR }}
             git pull
+            git reset --hard origin/main
             poetry install
             ./.github/backup/pg_backup.sh ${{ secrets.REMOTE_DIR }}
             ./run_migrations.sh
