@@ -33,7 +33,7 @@ def error_handler(update: Update, context: CallbackContext) -> None:
     tb_list = traceback.format_exception(
         None, context.error, context.error.__traceback__
     )
-    tb_string = "".join(tb_list)[: APP_CONFIG["TRACEBACK_LENGTH"]]
+    tb_string = "".join(tb_list)
 
     # Build the message with some markup and additional information about what happened.
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
@@ -43,13 +43,24 @@ def error_handler(update: Update, context: CallbackContext) -> None:
         "</pre>\n\n"
         f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
         f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-        f"<pre>{html.escape(tb_string)}</pre>"
     )
-
-    # Finally, send the message
     context.bot.send_message(
         chat_id=APP_CONFIG["DEVELOPER_ID"], text=message, parse_mode=ParseMode.HTML
     )
+
+    for i in range(len(tb_string) // APP_CONFIG["TRACEBACK_LENGTH"] + 1):
+        tb_segment = tb_string[
+            (i * APP_CONFIG["TRACEBACK_LENGTH"]) : (
+                (i + 1) * APP_CONFIG["TRACEBACK_LENGTH"]
+            )
+        ]
+        if not tb_segment:
+            continue
+        message = f"<pre>{html.escape(tb_segment)}</pre>"
+        context.bot.send_message(
+            chat_id=APP_CONFIG["DEVELOPER_ID"], text=message, parse_mode=ParseMode.HTML
+        )
+
     update.message.reply_text(
         "Uh oh, something went wrong! I've already informed my developer about this."
     )
