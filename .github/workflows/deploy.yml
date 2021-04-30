@@ -68,6 +68,7 @@ jobs:
             git pull
             git reset --hard origin/main
             poetry install
+            chmod +x ./.github/backup/pg_backup.sh
             ./.github/backup/pg_backup.sh ${{ secrets.REMOTE_DIR }}
             ./run_migrations.sh
             pm2 restart coding-questions-bot
