@@ -5,4 +5,4 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
-env PYTHONPATH=. ACQUITY_ENV=DEVELOPMENT poetry run alembic revision --autogenerate -m "$1"
+env PYTHONPATH=. BOT_ENV=DEVELOPMENT poetry run alembic revision --autogenerate -m "$1"
