@@ -10,6 +10,11 @@ def new_chat_member_handler(update: Update, _: CallbackContext) -> None:
     new_users = update.message.new_chat_members
     added_new_users = []
     for user in new_users:
+        if user.username == "CodingQuestionsBot":
+            update.message.reply_text(
+                "You've just added the Coding Question Bot! Use /add_me to join the tracking for this chat!"
+            )
+
         if user.is_bot:
             continue
         user = SERVICES.user_service.create_if_not_exists(
