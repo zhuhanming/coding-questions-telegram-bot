@@ -64,14 +64,13 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            source ~/.bashrc
             cd ${{ secrets.REMOTE_DIR }}
             git pull
             git reset --hard origin/main
-            poetry install
+            ${{ secrets.POETRY_PATH }} install
             chmod +x ./.github/backup/pg_backup.sh
             ./.github/backup/pg_backup.sh ${{ secrets.REMOTE_DIR }}
-            ./run_migrations.sh
+            env NO_POETRY=1 ./run_migrations.sh
             pm2 restart coding-questions-bot
             pm2 logs --nostream
             echo =========== Deployment Completed ===========
