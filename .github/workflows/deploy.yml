@@ -70,7 +70,7 @@ jobs:
             ${{ secrets.POETRY_PATH }} install
             chmod +x ./.github/backup/pg_backup.sh
             ./.github/backup/pg_backup.sh ${{ secrets.REMOTE_DIR }}
-            env NO_POETRY=1 ./run_migrations.sh
+            env MANUAL_PATH=1 ./run_migrations.sh ${{ secrets.POETRY_PATH }}
             pm2 restart coding-questions-bot
             pm2 logs --nostream
             echo =========== Deployment Completed ===========
