@@ -64,6 +64,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            source ~/.bashrc
             cd ${{ secrets.REMOTE_DIR }}
             git pull
             git reset --hard origin/main
