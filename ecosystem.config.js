@@ -2,8 +2,13 @@ module.exports = {
   apps: [
     {
       name: "coding-questions-bot",
-      cmd: "./launch.sh",
+      script: "src/app.py",
       autorestart: false,
+      interpreter: "poetry",
+      interpreter_args: "run python",
+      env: {
+        PYTHONPATH: ".",
+      },
     },
   ],
 };
