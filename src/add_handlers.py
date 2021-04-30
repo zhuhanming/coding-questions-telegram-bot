@@ -1,6 +1,12 @@
 from typing import Optional
 
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import (
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    Update,
+)
+from telegram.error import Unauthorized
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -8,6 +14,7 @@ from telegram.ext import (
     Filters,
     MessageHandler,
 )
+from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
@@ -17,6 +24,9 @@ URL, CONFIRM, MANUAL, THANKS = range(4)
 PLATFORMS = ["leetcode", "hackerrank"]
 ADD_KEYBOARD = [["LeetCode", "HackerRank", "Other"]]
 CONFIRM_KEYBOARD = [["Yes", "No"]]
+GET_STARTED_KEYBOARD = [
+    [InlineKeyboardButton(text="Get started", url=APP_CONFIG["BOT_URL"])]
+]
 
 
 def add(update: Update, context: CallbackContext) -> Optional[int]:
@@ -24,9 +34,15 @@ def add(update: Update, context: CallbackContext) -> Optional[int]:
     user = update.effective_user
 
     if update.message.chat.type != "private":
-        context.bot.send_message(
-            chat_id=user.id, text="Please resend /add_question here again!"
-        )
+        try:
+            context.bot.send_message(
+                chat_id=user.id, text="Please resend /add_question here again!"
+            )
+        except Unauthorized:
+            update.message.reply_text(
+                "You need to start a conversation with me first!",
+                reply_markup=InlineKeyboardMarkup(GET_STARTED_KEYBOARD),
+            )
         return
 
     update.message.reply_text(

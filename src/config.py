@@ -17,7 +17,8 @@ APP_CONFIG = {
     "BOT_ACCESS_TOKEN": getenv("BOT_ACCESS_TOKEN"),
     "DEVELOPER_ID": getenv("DEVELOPER_ID"),
     "WEEKLY_TARGET": 7,
-    "TRACEBACK_LENGTH": 600,
     "PLATFORM_KEY": "PLATFORM",
+    "TRACEBACK_LENGTH": 3000,
     "QUESTION_NAME_KEY": "QUESTION_NAME",
+    "BOT_URL": "http://t.me/CodingQuestionsBot",
 }
