@@ -55,7 +55,7 @@ function perform_backups()
   do
     echo "Uncompressed backup of $DATABASE"
 
-    if ! pg_dump "$DATABASE" > $BACKUP_DIR"$BACKUP_NAME".sql.in_progress; then
+    if ! pg_dump -O -h "$HOSTNAME" -U "$USERNAME" "$DATABASE" > $BACKUP_DIR"$BACKUP_NAME".sql.in_progress; then
       echo "Failed to produce uncompressed backup of database $DATABASE" 1>&2
     else
       mv $BACKUP_DIR"$BACKUP_NAME".sql.in_progress $BACKUP_DIR"$BACKUP_NAME".sql
