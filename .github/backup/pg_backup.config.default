@@ -1,6 +1,8 @@
 # Optional hostname to adhere to pg_hba policies. Will default to "localhost" if none specified.
 HOSTNAME=
 # Optional username to connect to database as. Will default to "postgres" if none specified.
-USERNAME=coding_questions_bot
+USERNAME=
+# Password for the username above, if any
+PASSWORD=
 
 DATABASE_WHITELIST="coding_questions_bot"
