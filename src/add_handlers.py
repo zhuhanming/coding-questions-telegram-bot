@@ -101,7 +101,7 @@ def confirm(update: Update, context: CallbackContext) -> int:
         best_effort_question_name = (
             SERVICES.question_name_service.parse_leetcode_url_directly(url=url)
             if is_leetcode
-            else SERVICES.question_name_service.parse_hackerank_url_directly(url=url)
+            else SERVICES.question_name_service.parse_hackerrank_url_directly(url=url)
         )
 
         if best_effort_question_name is None:

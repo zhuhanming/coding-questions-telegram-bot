@@ -191,6 +191,9 @@ class QuestionNameService:
         self.config = config
         chrome_options = Options()
         chrome_options.add_argument("--headless")
+        chrome_options.add_argument(
+            "user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+        )
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install(), options=chrome_options
         )
@@ -240,15 +243,15 @@ class QuestionNameService:
         if self.__is_invalid_hackerrank_page_name(page_name):
             return None
 
-        question_name = page_name[:-11]
+        question_name = page_name[:-13]
         return question_name
 
     @validate_input({"url": HACKERRANK_RULE})
     def parse_hackerrank_url_directly(self, url: str) -> Optional[str]:
-        split_url = url.split("/problems/")
+        split_url = url.split("/challenges/")
         if len(split_url) < 2:
             return None
-        problem_name_kebab = split_url[1]
+        problem_name_kebab = split_url[1].split("/")[0]
         problem_name_split = problem_name_kebab.split("-")
         problem_name = " ".join(list(map(lambda x: x.title(), problem_name_split)))
 
@@ -261,11 +264,11 @@ class QuestionNameService:
         if not page_name:
             return True
         page_name = page_name.lower()
-        invalid_strings = ["account login", "page not found"]
+        invalid_strings = ["access denied", "page not found"]
         for invalid_string in invalid_strings:
             if invalid_string in page_name:
                 return True
-        return False
+        return len(page_name) <= 13
 
 
 class Services:
