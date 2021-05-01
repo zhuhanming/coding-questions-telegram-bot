@@ -273,13 +273,13 @@ class Services:
 
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
 stdout_handler = logging.StreamHandler(stdout)
-stdout_handler.setLevel(logging.DEBUG)
-stdout_handler.addFilter(lambda record: record.levelno <= logging.INFO)
+stdout_handler.setLevel(logging.INFO)
+stdout_handler.addFilter(lambda record: record.levelno == logging.INFO)
 stderr_handler = logging.StreamHandler()
 stderr_handler.setLevel(logging.WARNING)
 
