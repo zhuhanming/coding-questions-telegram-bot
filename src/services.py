@@ -276,9 +276,10 @@ class Services:
 
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 stdout_handler = logging.StreamHandler(stdout)
 stdout_handler.setLevel(logging.INFO)
