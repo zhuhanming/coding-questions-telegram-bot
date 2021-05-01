@@ -1,8 +1,16 @@
-from typing import List
+from typing import Optional, TypeVar
 
 from src.config import APP_CONFIG
 
 SUMMARY_STRFTIME_FORMAT = "%A"
+
+T = TypeVar("T")
+
+
+def unwrap(optional: Optional[T]) -> T:
+    if optional is None:
+        raise Exception("Unwrap called on None")
+    return optional
 
 
 def format_platform_name(name: str) -> str:
@@ -13,7 +21,7 @@ def format_platform_name(name: str) -> str:
     return "Other"
 
 
-def generate_weekly_summary(records: List[dict]) -> str:
+def generate_weekly_summary(records: list[dict]) -> str:
     if not records:
         return "You have not completed any questions this week!"
     summary = "Questions you have completed this week:\n\n"
@@ -31,7 +39,7 @@ def generate_weekly_summary(records: List[dict]) -> str:
     return summary
 
 
-def generate_user_list(chat: dict, users: List[dict]) -> str:
+def generate_user_list(chat: dict, users: list[dict]) -> str:
     if not users:
         return "There are no members in this chat!\nPlease add yourself with the /add_me command."
 

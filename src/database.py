@@ -25,7 +25,7 @@ class Base(_base):
     def additional_things_to_dict(self):
         return {}
 
-    def asdict(self):
+    def asdict(self) -> dict:
         d = {}
         columns = self.__table__.columns.keys()
 

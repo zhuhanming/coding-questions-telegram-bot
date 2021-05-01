@@ -2,13 +2,13 @@ import logging
 from datetime import datetime, timedelta
 from sys import stdout
 from time import sleep
-from typing import List, Optional
+from typing import Optional
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
-from src.config import APP_CONFIG
+from src.config import APP_CONFIG, Config
 from src.database import Belong, Chat, QuestionRecord, User, session_scope
 from src.exceptions import ResourceNotFoundException
 from src.schemata import (
@@ -27,13 +27,15 @@ from src.schemata import (
 
 
 class UserService:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.config = config
 
     @validate_input(CREATE_USER_SCHEMA)
     def create_if_not_exists(self, full_name: str, telegram_id: str) -> dict:
         with session_scope() as session:
-            user = session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
+            user: Optional[User] = (
+                session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
+            )
             if user is None:
                 user = User(full_name=full_name, telegram_id=telegram_id)
                 session.add(user)
@@ -47,7 +49,9 @@ class UserService:
     @validate_input(GET_USER_SCHEMA)
     def get_user_by_telegram_id(self, telegram_id: str) -> dict:
         with session_scope() as session:
-            user = session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
+            user: Optional[User] = (
+                session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
+            )
             if user is None:
                 raise ResourceNotFoundException()
             user_dict = user.asdict()
@@ -55,7 +59,7 @@ class UserService:
 
 
 class QuestionRecordService:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.config = config
 
     @validate_input(CREATE_QUESTION_RECORD_SCHEMA)
@@ -77,7 +81,7 @@ class QuestionRecordService:
             return question_record.asdict()
 
     @validate_input(GET_QUESTION_RECORD_SCHEMA)
-    def get_all_records_by_user(self, user_id: str) -> List[dict]:
+    def get_all_records_by_user(self, user_id: str) -> list[dict]:
         with session_scope() as session:
             question_orders = (
                 session.query(QuestionRecord)
@@ -88,7 +92,7 @@ class QuestionRecordService:
             return [question_order.asdict() for question_order in question_orders]
 
     @validate_input(GET_QUESTION_RECORD_SCHEMA)
-    def get_records_by_user_for_this_week(self, user_id: str) -> List[dict]:
+    def get_records_by_user_for_this_week(self, user_id: str) -> list[dict]:
         now = datetime.now()
         monday = (now - timedelta(days=now.weekday())).replace(
             hour=0, minute=0, second=0, microsecond=0
@@ -105,13 +109,15 @@ class QuestionRecordService:
 
 
 class ChatService:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.config = config
 
     @validate_input(CREATE_CHAT_SCHEMA)
     def create_if_not_exists(self, title: str, telegram_id: str) -> dict:
         with session_scope() as session:
-            chat = session.query(Chat).filter_by(telegram_id=telegram_id).one_or_none()
+            chat: Optional[Chat] = (
+                session.query(Chat).filter_by(telegram_id=telegram_id).one_or_none()
+            )
             if chat is None:
                 chat = Chat(title=title, telegram_id=telegram_id)
                 session.add(chat)
@@ -125,7 +131,9 @@ class ChatService:
     @validate_input(GET_CHAT_SCHEMA)
     def get_chat_by_telegram_id(self, telegram_id: str) -> dict:
         with session_scope() as session:
-            chat = session.query(Chat).filter_by(telegram_id=telegram_id).one_or_none()
+            chat: Optional[Chat] = (
+                session.query(Chat).filter_by(telegram_id=telegram_id).one_or_none()
+            )
             if chat is None:
                 raise ResourceNotFoundException()
             chat_dict = chat.asdict()
@@ -133,13 +141,13 @@ class ChatService:
 
 
 class BelongService:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.config = config
 
     @validate_input(BELONG_SCHEMA)
     def add_user_to_chat_if_not_inside(self, user_id: str, chat_id: str) -> dict:
         with session_scope() as session:
-            belong = (
+            belong: Optional[Belong] = (
                 session.query(Belong)
                 .filter_by(user_id=user_id, chat_id=chat_id)
                 .one_or_none()
@@ -164,7 +172,7 @@ class BelongService:
         return {}
 
     @validate_input({"chat_id": UUID_RULE})
-    def get_users_in_chat(self, chat_id: str) -> List[dict]:
+    def get_users_in_chat(self, chat_id: str) -> list[dict]:
         with session_scope() as session:
             users = [
                 u.asdict()
@@ -187,7 +195,7 @@ class BelongService:
 
 
 class QuestionNameService:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.config = config
         chrome_options = Options()
         chrome_options.add_argument("--headless")
@@ -202,7 +210,7 @@ class QuestionNameService:
     def get_leetcode_question_name(self, url: str) -> Optional[str]:
         self.driver.get(url)
         sleep(0.5)
-        page_name = self.driver.title
+        page_name = str(self.driver.title)
 
         if self.__is_invalid_leetcode_page_name(page_name):
             return None
@@ -238,7 +246,7 @@ class QuestionNameService:
     def get_hackerrank_question_name(self, url: str) -> Optional[str]:
         self.driver.get(url)
         sleep(0.5)
-        page_name = self.driver.title
+        page_name = str(self.driver.title)
 
         if self.__is_invalid_hackerrank_page_name(page_name):
             return None
@@ -272,7 +280,14 @@ class QuestionNameService:
 
 
 class Services:
-    pass
+    def __init__(self, config: Config, logger: logging.Logger):
+        self.config = config
+        self.user_service = UserService(config)
+        self.chat_service = ChatService(config)
+        self.belong_service = BelongService(config)
+        self.question_record_service = QuestionRecordService(config)
+        self.question_name_service = QuestionNameService(config)
+        self.logger = logger
 
 
 logger = logging.getLogger(__name__)
@@ -291,11 +306,4 @@ stderr_handler.setFormatter(formatter)
 logger.addHandler(stdout_handler)
 logger.addHandler(stderr_handler)
 
-SERVICES = Services()
-SERVICES.config = APP_CONFIG
-SERVICES.user_service = UserService(SERVICES.config)
-SERVICES.chat_service = ChatService(SERVICES.config)
-SERVICES.belong_service = BelongService(SERVICES.config)
-SERVICES.question_record_service = QuestionRecordService(SERVICES.config)
-SERVICES.question_name_service = QuestionNameService(SERVICES.config)
-SERVICES.logger = logger
+SERVICES = Services(APP_CONFIG, logger)
