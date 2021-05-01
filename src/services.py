@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from sys import stdout
 from time import sleep
 from typing import List, Optional
 
@@ -272,8 +273,18 @@ class Services:
 
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG
 )
+logger = logging.getLogger(__name__)
+
+stdout_handler = logging.StreamHandler(stdout)
+stdout_handler.setLevel(logging.DEBUG)
+stdout_handler.addFilter(lambda record: record.levelno <= logging.INFO)
+stderr_handler = logging.StreamHandler()
+stderr_handler.setLevel(logging.WARNING)
+
+logger.addHandler(stdout_handler)
+logger.addHandler(stderr_handler)
 
 SERVICES = Services()
 SERVICES.config = APP_CONFIG
@@ -282,4 +293,4 @@ SERVICES.chat_service = ChatService(SERVICES.config)
 SERVICES.belong_service = BelongService(SERVICES.config)
 SERVICES.question_record_service = QuestionRecordService(SERVICES.config)
 SERVICES.question_name_service = QuestionNameService(SERVICES.config)
-SERVICES.logger = logging.getLogger(__name__)
+SERVICES.logger = logger
