@@ -1,2 +1,2 @@
 [flake8]
-exclude=env,venv,.env,.venv
+exclude = env,venv,.env,.venv
