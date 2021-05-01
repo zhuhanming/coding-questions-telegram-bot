@@ -16,11 +16,16 @@ def main() -> None:
     updater = Updater(APP_CONFIG["BOT_ACCESS_TOKEN"])
     dispatcher = updater.dispatcher
 
+    # Individual commands
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("week", week))
+    dispatcher.add_handler(add_conv_handler)
+
+    # Group commands
     dispatcher.add_handler(CommandHandler("members", chat_members))
     dispatcher.add_handler(CommandHandler("add_me", add_me))
-    dispatcher.add_handler(add_conv_handler)
+    
+    # General handlers
     dispatcher.add_handler(
         MessageHandler(Filters.text & ~Filters.command, unknown_message)
     )
