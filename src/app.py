@@ -24,7 +24,7 @@ def main() -> None:
     # Group commands
     dispatcher.add_handler(CommandHandler("members", chat_members))
     dispatcher.add_handler(CommandHandler("add_me", add_me))
-    
+
     # General handlers
     dispatcher.add_handler(
         MessageHandler(Filters.text & ~Filters.command, unknown_message)
