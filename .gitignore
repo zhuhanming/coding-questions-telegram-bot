@@ -143,5 +143,7 @@ cython_debug/
 # Local scripts
 *_local.sh
 
-# Backups
-backups/
+# Backups and backup configs
+backups/pg_backup.config
+backups/*.sql
+backups/*.sql.in_progress

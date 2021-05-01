@@ -6,3 +6,7 @@ USERNAME=
 PASSWORD=
 
 DATABASE_WHITELIST="coding_questions_bot"
+
+# This dir will be created if it doesn't exist. This must be writable by the user the script is
+# running as. Will default to project_root/backups if none specified.
+BACKUP_DIR=

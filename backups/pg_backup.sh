@@ -5,7 +5,7 @@
 ###########################
 
 if [ -z $CONFIG_FILE_PATH ] ; then
-  CONFIG_FILE_PATH="$1/.github/backup/pg_backup.config"
+  CONFIG_FILE_PATH="$1/backups/pg_backup.config"
 fi
 
 if [ ! -r ${CONFIG_FILE_PATH} ] ; then
@@ -31,7 +31,9 @@ if [ ! $PASSWORD ]; then
   PASSWORD=""
 fi;
 
-BACKUP_DIR="$1/backups/"
+if [ ! $BACKUP_DIR ]; then
+  BACKUP_DIR="$1/backups/"
+fi;
 
 ###########################
 #### START THE BACKUPS ####
