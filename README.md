@@ -48,8 +48,10 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 `/all_unique`: To see a summary of how many _unique_ questions each chat group member has completed (and registered with the bot). Uniqueness is determined by the name of the question, the platform the question is from, and its difficulty.
 
-`/interview_pairs`: **WIP**. To generate the mock interview pairs for the week. Once generated, it should not change for the rest of the week. Subsequent usage of the same command will instead show a summary of which pairs have completed their mock interviews, and which have not.
+`/interview_pairs`: To generate the mock interview pairs for the week. Once generated, it should not change for the rest of the week. Subsequent usage of the same command will instead show a summary of which pairs have completed their mock interviews, and which have not.
 
 ### Additional Functionalities + TODO
 
 Weekly reminders: **WIP**. To routinely remind members to do their questions and mock interviews, e.g. one day before the week ends.
+
+Handle edge cases with member/bot removal: **WIP**. To be done when all commands have been completed.
