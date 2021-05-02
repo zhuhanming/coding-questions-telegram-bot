@@ -1,11 +1,19 @@
 import uuid
 from contextlib import contextmanager
 
-from sqlalchemy import Column, DateTime, ForeignKey, String, create_engine, func
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    String,
+    UniqueConstraint,
+    create_engine,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.sql.schema import UniqueConstraint
 
 from src.config import APP_CONFIG
 
@@ -53,6 +61,16 @@ class User(Base):
     user_belongs_in = relationship(
         "Belong", back_populates="user", foreign_keys="[Belong.user_id]"
     )
+    interview_pairs_as_user_one = relationship(
+        "InterviewPair",
+        back_populates="user_one",
+        foreign_keys="[InterviewPair.user_one_id]",
+    )
+    interview_pairs_as_user_two = relationship(
+        "InterviewPair",
+        back_populates="user_two",
+        foreign_keys="[InterviewPair.user_two_id]",
+    )
 
 
 class QuestionRecord(Base):
@@ -91,6 +109,27 @@ class Belong(Base):
     )
 
     __table_args__ = (UniqueConstraint("user_id", "chat_id"),)
+
+
+class InterviewPair(Base):
+    __tablename__ = "interview_pairs"
+
+    user_one_id = Column(
+        UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    user_two_id = Column(
+        UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+
+    is_completed = Column(Boolean, nullable=False, server_default="f")
+    completed_at = Column(DateTime(timezone=True))
+
+    user_one = relationship(
+        "User", back_populates="interview_pairs_as_user_one", foreign_keys=[user_one_id]
+    )
+    user_two = relationship(
+        "User", back_populates="interview_pairs_as_user_two", foreign_keys=[user_two_id]
+    )
 
 
 engine = create_engine(APP_CONFIG["DATABASE_URL"])
