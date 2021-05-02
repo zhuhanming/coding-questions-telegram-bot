@@ -60,3 +60,11 @@ GET_QUESTION_RECORDS_SCHEMA = {
     "user_ids": UUIDS_RULE,
     "summary_type": {"required": False},
 }
+
+CREATE_INTERVIEW_PAIRS_SCHEMA = {
+    "pairs": {
+        "type": "list",
+        "schema": {"type": "list", "items": [UUID_RULE, UUID_RULE]},
+    },
+    "chat_id": UUID_RULE,
+}

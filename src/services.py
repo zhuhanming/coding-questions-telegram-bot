@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from sys import stdout
 from time import sleep
 from typing import Optional
@@ -7,15 +7,24 @@ from typing import Optional
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import or_
 from webdriver_manager.chrome import ChromeDriverManager
 
 from src.config import APP_CONFIG, Config
-from src.database import Belong, Chat, QuestionRecord, User, session_scope
+from src.database import (
+    Belong,
+    Chat,
+    InterviewPair,
+    QuestionRecord,
+    User,
+    session_scope,
+)
 from src.exceptions import ResourceNotFoundException
 from src.schemata import (
     BELONG_SCHEMA,
     CREATE_CHAT_SCHEMA,
+    CREATE_INTERVIEW_PAIRS_SCHEMA,
     CREATE_QUESTION_RECORD_SCHEMA,
     CREATE_USER_SCHEMA,
     GET_CHAT_SCHEMA,
@@ -26,7 +35,7 @@ from src.schemata import (
     UUID_RULE,
     validate_input,
 )
-from src.utils import QuestionInfo, SummaryType
+from src.utils import QuestionInfo, SummaryType, get_start_of_month, get_start_of_week
 
 
 class UserService:
@@ -55,6 +64,15 @@ class UserService:
             user: Optional[User] = (
                 session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
             )
+            if user is None:
+                raise ResourceNotFoundException()
+            user_dict = user.asdict()
+        return user_dict
+
+    @validate_input({"id": UUID_RULE})
+    def get_user_by_id(self, id: str) -> dict:
+        with session_scope() as session:
+            user: Optional[User] = session.query(User).filter_by(id=id).one_or_none()
             if user is None:
                 raise ResourceNotFoundException()
             user_dict = user.asdict()
@@ -155,13 +173,10 @@ class QuestionRecordService:
     def __get_before_date(
         self, summary_type: Optional[SummaryType]
     ) -> Optional[datetime]:
-        now = datetime.now()
         if summary_type == SummaryType.WEEKLY:
-            return (now - timedelta(days=now.weekday())).replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
+            return get_start_of_week()
         elif summary_type == SummaryType.MONTHLY:
-            return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            return get_start_of_month()
         return None
 
 
@@ -251,6 +266,50 @@ class BelongService:
             return belong is not None
 
 
+class InterviewPairService:
+    def __init__(self, config: Config):
+        self.config = config
+
+    @validate_input(CREATE_INTERVIEW_PAIRS_SCHEMA)
+    def add_pairs_for_chat(self, pairs: list[list[str]], chat_id: str):
+        monday = get_start_of_week()
+        with session_scope() as session:
+            session.add_all(
+                [
+                    InterviewPair(
+                        user_one_id=user_one_id,
+                        user_two_id=user_two_id,
+                        chat_id=chat_id,
+                        started_at=monday,
+                    )
+                    for user_one_id, user_two_id in pairs
+                ]
+            )
+
+    @validate_input({"chat_id": UUID_RULE})
+    def get_current_pairs_for_chat(self, chat_id: str) -> list[dict]:
+        monday = get_start_of_week()
+        with session_scope() as session:
+            user1 = aliased(User)
+            user2 = aliased(User)
+            pairs = (
+                session.query(InterviewPair, user1, user2)
+                .filter(InterviewPair.chat_id == chat_id)
+                .filter(InterviewPair.started_at >= monday)
+                .join(user1, InterviewPair.user_one_id == user1.id)
+                .join(user2, InterviewPair.user_two_id == user2.id)
+                .all()
+            )
+            return [
+                {
+                    "pair": pair.asdict(),
+                    "user_one": user_one.asdict(),
+                    "user_two": user_two.asdict(),
+                }
+                for pair, user_one, user_two in pairs
+            ]
+
+
 class QuestionInfoService:
     def __init__(self, config: Config):
         self.config = config
@@ -315,8 +374,7 @@ class QuestionInfoService:
                     ).format(difficulty.title() if is_leetcode else difficulty)
                 )
                 return difficulty
-            except NoSuchElementException as e:
-                print(e)
+            except NoSuchElementException:
                 continue
         return None
 
@@ -328,6 +386,7 @@ class Services:
         self.chat_service = ChatService(config)
         self.belong_service = BelongService(config)
         self.question_record_service = QuestionRecordService(config)
+        self.pair_service = InterviewPairService(config)
         self.question_info_service = QuestionInfoService(config)
         self.logger = logger
 
