@@ -31,6 +31,7 @@ HACKERRANK_REGEX = (
 )
 
 UUID_RULE = {"type": "string", "regex": UUID_REGEX}
+UUIDS_RULE = {"type": "list", "regex": UUID_REGEX}
 TELEGRAM_USER_ID_RULE = {"type": "string", "regex": TELEGRAM_USER_ID_REGEX}
 QUESTION_URL_RULE = {
     "type": "string",
@@ -55,3 +56,7 @@ CREATE_QUESTION_RECORD_SCHEMA = {
     "difficulty": {"type": "string", "allowed": ["easy", "medium", "hard"]},
 }
 GET_QUESTION_RECORD_SCHEMA = {"user_id": UUID_RULE, "summary_type": {"required": False}}
+GET_QUESTION_RECORDS_SCHEMA = {
+    "user_ids": UUIDS_RULE,
+    "summary_type": {"required": False},
+}

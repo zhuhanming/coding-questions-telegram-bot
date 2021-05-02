@@ -7,6 +7,7 @@ from typing import Optional
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
+from sqlalchemy.sql.expression import or_
 from webdriver_manager.chrome import ChromeDriverManager
 
 from src.config import APP_CONFIG, Config
@@ -19,6 +20,7 @@ from src.schemata import (
     CREATE_USER_SCHEMA,
     GET_CHAT_SCHEMA,
     GET_QUESTION_RECORD_SCHEMA,
+    GET_QUESTION_RECORDS_SCHEMA,
     GET_USER_SCHEMA,
     QUESTION_URL_RULE,
     UUID_RULE,
@@ -88,14 +90,7 @@ class QuestionRecordService:
     def get_records_by_user(
         self, user_id: str, summary_type: Optional[SummaryType] = None
     ) -> list[dict]:
-        now = datetime.now()
-        before_date = None
-        if summary_type == SummaryType.WEEKLY:
-            before_date = (now - timedelta(days=now.weekday())).replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-        elif summary_type == SummaryType.MONTHLY:
-            before_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        before_date = self.__get_before_date(summary_type)
 
         with session_scope() as session:
             query = session.query(QuestionRecord).filter_by(user_id=user_id)
@@ -103,13 +98,71 @@ class QuestionRecordService:
                 query = query.filter(QuestionRecord.created_at >= before_date)
             if summary_type == SummaryType.ALL_UNIQUE:
                 query = query.distinct(
-                    QuestionRecord.question_name, QuestionRecord.platform
+                    QuestionRecord.question_name,
+                    QuestionRecord.platform,
+                    QuestionRecord.difficulty,
                 )
-                question_orders = query.all()
+                question_records = query.all()
             else:
-                question_orders = query.order_by(QuestionRecord.created_at).all()
+                question_records = query.order_by(QuestionRecord.created_at).all()
 
-            return [question_order.asdict() for question_order in question_orders]
+            return [question_record.asdict() for question_record in question_records]
+
+    @validate_input(GET_QUESTION_RECORDS_SCHEMA)
+    def get_records_by_users(
+        self, user_ids: list[str], summary_type: Optional[SummaryType] = None
+    ) -> dict:
+        before_date = self.__get_before_date(summary_type)
+
+        with session_scope() as session:
+            query = (
+                session.query(User, QuestionRecord)
+                .filter(User.id.in_(user_ids))
+                .outerjoin(QuestionRecord, QuestionRecord.user_id == User.id)
+            )
+            if before_date is not None:
+                query = query.filter(
+                    or_(
+                        QuestionRecord.created_at >= before_date,
+                        QuestionRecord.created_at.is_(None),
+                    )
+                )
+            if summary_type == SummaryType.ALL_UNIQUE:
+                query = query.distinct(
+                    QuestionRecord.question_name,
+                    QuestionRecord.platform,
+                    QuestionRecord.difficulty,
+                )
+                user_record_pairs = query.all()
+            else:
+                user_record_pairs = query.order_by(QuestionRecord.created_at).all()
+
+            results: dict[str, dict] = {}
+            for user, question_record in user_record_pairs:
+                user_dict = user.asdict()
+                results[user_dict["id"]] = results.get(
+                    user_dict["id"],
+                    {"full_name": user_dict["full_name"], "question_records": []},
+                )
+                if question_record is None:
+                    results[user_dict["id"]]["question_records"].clear()
+                else:
+                    results[user_dict["id"]]["question_records"].append(
+                        question_record.asdict()
+                    )
+            return results
+
+    def __get_before_date(
+        self, summary_type: Optional[SummaryType]
+    ) -> Optional[datetime]:
+        now = datetime.now()
+        if summary_type == SummaryType.WEEKLY:
+            return (now - timedelta(days=now.weekday())).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+        elif summary_type == SummaryType.MONTHLY:
+            return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return None
 
 
 class ChatService:
