@@ -3,12 +3,16 @@ import json
 import traceback
 from typing import cast
 
-from telegram import ParseMode, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
 from src.utils import unwrap
+
+GET_STARTED_KEYBOARD = [
+    [InlineKeyboardButton(text="Get started", url=APP_CONFIG["BOT_URL"])]
+]
 
 
 def start(update: Update, _: CallbackContext) -> None:
@@ -16,6 +20,13 @@ def start(update: Update, _: CallbackContext) -> None:
     # Unwrap and fail fast
     user = unwrap(update.effective_user)
     update.message = unwrap(update.message)
+
+    if update.message.chat.type != "private":
+        update.message.reply_text(
+            "Get started with coding question practice now!",
+            reply_markup=InlineKeyboardMarkup(GET_STARTED_KEYBOARD),
+        )
+        return
 
     SERVICES.logger.info("User started: %s %s", user.id, user.full_name)
     update.message.reply_text("Hello {}!".format(user.full_name))
