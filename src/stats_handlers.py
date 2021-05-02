@@ -67,8 +67,10 @@ def generate_group_summary(records: dict[str, dict], summary_type: SummaryType) 
 
     summary = "<b>Questions completed {}:</b>\n".format(summary_type.value)
     for record in record_list:
-        summary += "{}: {} completed\n".format(
-            record["full_name"], len(record["question_records"])
+        summary += "{}: {}/{} completed\n".format(
+            record["full_name"],
+            len(record["question_records"]),
+            APP_CONFIG["WEEKLY_TARGET"],
         )
 
     if (
@@ -91,8 +93,10 @@ def generate_detailed_group_summary(
 
     summary = "<b>Questions completed {}:</b>\n".format(summary_type.value)
     for record in record_list:
-        summary += "{}: {} completed\n".format(
-            record["full_name"], len(record["question_records"])
+        summary += "{}: {}/{} completed\n".format(
+            record["full_name"],
+            len(record["question_records"]),
+            APP_CONFIG["WEEKLY_TARGET"],
         )
         for i, question_record in enumerate(record["question_records"]):
             summary += "{}. {} [{}] [{}]\n".format(
