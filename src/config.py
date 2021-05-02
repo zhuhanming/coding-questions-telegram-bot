@@ -22,9 +22,7 @@ Config = TypedDict(
         "BOT_ACCESS_TOKEN": str,
         "DEVELOPER_ID": str,
         "WEEKLY_TARGET": int,
-        "PLATFORM_KEY": str,
         "TRACEBACK_LENGTH": int,
-        "QUESTION_NAME_KEY": str,
         "BOT_URL": str,
     },
 )
@@ -34,8 +32,6 @@ APP_CONFIG: Config = {
     "BOT_ACCESS_TOKEN": unwrap(getenv("BOT_ACCESS_TOKEN")),
     "DEVELOPER_ID": unwrap(getenv("DEVELOPER_ID")),
     "WEEKLY_TARGET": 7,
-    "PLATFORM_KEY": "PLATFORM",
     "TRACEBACK_LENGTH": 3000,
-    "QUESTION_NAME_KEY": "QUESTION_NAME",
     "BOT_URL": "http://t.me/CodingQuestionsBot",
 }

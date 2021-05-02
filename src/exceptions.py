@@ -16,3 +16,7 @@ class InvalidRequestException(BotException):
 
 class InvalidUnwrapException(BotException):
     message = "Unwrap called on None"
+
+
+class InvalidUserDataException(BotException):
+    message = "Cannot get user_data from context"

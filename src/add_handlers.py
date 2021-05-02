@@ -2,6 +2,7 @@ from typing import Optional
 
 from telegram import (
     InlineKeyboardMarkup,
+    ParseMode,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     Update,
@@ -17,13 +18,15 @@ from telegram.ext import (
 from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 
 from src.config import APP_CONFIG
+from src.exceptions import InvalidUserDataException
 from src.services import SERVICES
 from src.stats_handlers import SummaryType, generate_individual_summary
 from src.utils import unwrap
 
-URL, CONFIRM, MANUAL, THANKS = range(4)
+URL, CONFIRM, MANUAL_NAME, MANUAL_DIFFICULTY_PRE, MANUAL_DIFFICULTY, THANKS = range(6)
 PLATFORMS = ["leetcode", "hackerrank"]
 ADD_KEYBOARD = [["LeetCode", "HackerRank", "Other"]]
+DIFFICULTY_KEYBOARD = [["Easy", "Medium", "Hard"]]
 CONFIRM_KEYBOARD = [["Yes", "No"]]
 GET_STARTED_KEYBOARD = [
     [InlineKeyboardButton(text="Get started", url=APP_CONFIG["BOT_URL"])]
@@ -62,12 +65,13 @@ def url(update: Update, context: CallbackContext) -> int:
     """Acknowledges the platform selected and asks for the URL from the user."""
     # Unwrap and fail fast
     update.message = unwrap(update.message)
-    context.user_data = unwrap(context.user_data)
+    if context.user_data is None:
+        raise InvalidUserDataException()
 
     platform = unwrap(update.message.text).lower()
     assert platform in PLATFORMS
 
-    context.user_data[APP_CONFIG["PLATFORM_KEY"]] = platform
+    context.user_data["PLATFORM"] = platform
     update.message.reply_text(
         "Please send me the URL of the question you just attempted!\n"
         "You can also send /cancel to cancel.",
@@ -81,17 +85,18 @@ def other(update: Update, context: CallbackContext) -> int:
     # Unwrap and fail fast
     update.message = unwrap(update.message)
     update.message.text = unwrap(update.message.text)
-    context.user_data = unwrap(context.user_data)
+    if context.user_data is None:
+        raise InvalidUserDataException()
 
     platform = update.message.text.lower()
     assert platform == "other"
 
-    context.user_data[APP_CONFIG["PLATFORM_KEY"]] = platform
+    context.user_data["PLATFORM"] = platform
     update.message.reply_text(
         "Do you mind letting me know what the name of the question you attempted was?",
         reply_markup=ReplyKeyboardRemove(),
     )
-    return MANUAL
+    return MANUAL_NAME
 
 
 def confirm(update: Update, context: CallbackContext) -> int:
@@ -99,73 +104,130 @@ def confirm(update: Update, context: CallbackContext) -> int:
     # Unwrap and fail fast
     update.message = unwrap(update.message)
     update.message.text = unwrap(update.message.text)
-    context.user_data = unwrap(context.user_data)
+    if context.user_data is None:
+        raise InvalidUserDataException()
 
     url = update.message.text.lower()
-    platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
+    platform = context.user_data.get("PLATFORM")
 
     assert platform in PLATFORMS
+    if platform not in url:
+        update.message.reply_text(
+            "Are you sure this is a link for the platform you stated?"
+            "Please send the url again!\n"
+            "Or send /cancel to cancel."
+        )
+        return CONFIRM
+
     update.message.reply_text(
         "This part may take a while to load.\n" "Do be patient with me!"
     )
     is_leetcode = platform == "leetcode"
 
-    question_name = (
-        SERVICES.question_name_service.get_leetcode_question_name(url=url)
-        if is_leetcode
-        else SERVICES.question_name_service.get_hackerrank_question_name(url=url)
+    question_info = SERVICES.question_info_service.get_question_info(
+        url=url, is_leetcode=is_leetcode
+    )
+    context.user_data["QUESTION_NAME"] = question_info.name
+    context.user_data["QUESTION_DIFFICULTY"] = (
+        question_info.difficulty.lower()
+        if question_info.difficulty is not None
+        else None
     )
 
-    if question_name is None or not question_name:
-        best_effort_question_name = (
-            SERVICES.question_name_service.parse_leetcode_url_directly(url=url)
-            if is_leetcode
-            else SERVICES.question_name_service.parse_hackerrank_url_directly(url=url)
-        )
-
-        if best_effort_question_name is None:
-            update.message.reply_text(
-                "It seems like either the URL is invalid or you sent me a premium question!\n"
-                "Please enter the name of the question manually. "
-                "You can also send /cancel to cancel and restart this process.",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-
-            return MANUAL
-
+    if question_info.name is None:
         update.message.reply_text(
-            "I couldn't get the question title from the website directly!\n"
-            "Is your question title: {}?".format(best_effort_question_name),
+            "It seems like either the URL is invalid or you sent me a premium question!\n"
+            "Please enter the name of the question manually. "
+            "You can also send /cancel to cancel and restart this process.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return MANUAL_NAME
+
+    if question_info.difficulty is None:
+        update.message.reply_text(
+            "I tried my best to get the question title from the website directly!\n"
+            "Is your question title: {}?".format(question_info.name),
             reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
         )
+        return MANUAL_DIFFICULTY_PRE
 
-        context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]] = best_effort_question_name
-        return THANKS
+    assert question_info.name is not None
+    assert question_info.difficulty is not None
 
     update.message.reply_text(
-        "I managed to find the question title from the website directly!\n"
-        "Is your question title: {}?".format(question_name),
+        "I managed to find the question info from the website directly!\n"
+        "Is your question: {} [{}]?".format(
+            question_info.name, question_info.difficulty.title()
+        ),
         reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
     )
 
-    context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]] = question_name
     return THANKS
 
 
-def manual(update: Update, context: CallbackContext) -> int:
-    """Acknowledges the manual entry and confirms it with the user."""
+def manual_name(update: Update, context: CallbackContext) -> int:
+    """Acknowledges the manual name entry and confirms it with the user."""
     # Unwrap and fail fast
     update.message = unwrap(update.message)
     update.message.text = unwrap(update.message.text)
-    context.user_data = unwrap(context.user_data)
+    if context.user_data is None:
+        raise InvalidUserDataException()
 
     question_name = update.message.text
+    context.user_data["QUESTION_NAME"] = question_name
+
     update.message.reply_text(
-        "Just to confirm, is your question title: {}?".format(question_name),
+        "What is the difficulty of your question?",
+        reply_markup=ReplyKeyboardMarkup(DIFFICULTY_KEYBOARD, one_time_keyboard=True),
+    )
+    return MANUAL_DIFFICULTY
+
+
+def manual_difficulty_pre(update: Update, context: CallbackContext) -> int:
+    """Acknowledges the confirmation of the question name and asks for the difficulty."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    if context.user_data is None:
+        raise InvalidUserDataException()
+
+    confirmation = update.message.text.lower()
+    if confirmation == "no":
+        update.message.reply_text(
+            "Sorry that I got your question title wrong!\n"
+            "Do you mind sending the name of the question here?\n"
+            "Or send /cancel to cancel."
+        )
+        return MANUAL_NAME
+
+    update.message.reply_text(
+        "Awesome! What is the difficulty of the question?",
+        reply_markup=ReplyKeyboardMarkup(DIFFICULTY_KEYBOARD, one_time_keyboard=True),
+    )
+    return MANUAL_DIFFICULTY
+
+
+def manual_difficulty(update: Update, context: CallbackContext) -> int:
+    """Acknowledges the manual difficulty entry and confirms it with the user."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    if context.user_data is None:
+        raise InvalidUserDataException()
+
+    question_difficulty = update.message.text.lower()
+    context.user_data["QUESTION_DIFFICULTY"] = question_difficulty
+    question_name = context.user_data["QUESTION_NAME"]
+
+    assert question_name is not None
+    assert question_difficulty is not None
+
+    update.message.reply_text(
+        "Just to confirm, is your question: {} [{}]?".format(
+            question_name, question_difficulty.title()
+        ),
         reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
     )
-
-    context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]] = question_name
     return THANKS
 
 
@@ -174,8 +236,9 @@ def thanks(update: Update, context: CallbackContext) -> int:
     # Unwrap and fail fast
     update.message = unwrap(update.message)
     update.message.text = unwrap(update.message.text)
-    context.user_data = unwrap(context.user_data)
     user = unwrap(update.effective_user)
+    if context.user_data is None:
+        raise InvalidUserDataException()
 
     confirmation = update.message.text.lower()
 
@@ -185,11 +248,12 @@ def thanks(update: Update, context: CallbackContext) -> int:
             "Do you mind sending the name of the question here?\n"
             "Or send /cancel to cancel."
         )
-        del context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]]
-        return MANUAL
+        return MANUAL_NAME
 
-    platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
-    question_name = context.user_data.get(APP_CONFIG["QUESTION_NAME_KEY"])
+    platform = context.user_data.get("PLATFORM")
+    question_name = context.user_data.get("QUESTION_NAME")
+    difficulty = context.user_data.get("QUESTION_DIFFICULTY")
+    print(difficulty)
 
     # Persist data to database
     user_dict = SERVICES.user_service.create_if_not_exists(
@@ -217,7 +281,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
     )
 
     summary = generate_individual_summary(records, SummaryType.WEEKLY)
-    update.message.reply_text(summary)
+    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
     return ConversationHandler.END
 
 
@@ -225,7 +289,8 @@ def cancel(update: Update, context: CallbackContext) -> int:
     """Fallback that ends the conversation and clears any cached data."""
     # Unwrap and fail fast
     update.message = unwrap(update.message)
-    context.user_data = unwrap(context.user_data)
+    if context.user_data is None:
+        raise InvalidUserDataException()
 
     update.message.reply_text(
         "No worries! Come back again soon!", reply_markup=ReplyKeyboardRemove()
@@ -241,13 +306,15 @@ add_conv_handler = ConversationHandler(
         URL: [
             MessageHandler(Filters.regex("^(LeetCode|HackerRank)$"), url),
             MessageHandler(Filters.regex("^(Other)$"), other),
-            CommandHandler("cancel", cancel),
         ],
-        CONFIRM: [
-            MessageHandler(Filters.text & ~Filters.command, confirm),
-            CommandHandler("cancel", cancel),
+        CONFIRM: [MessageHandler(Filters.text & ~Filters.command, confirm)],
+        MANUAL_NAME: [MessageHandler(Filters.text & ~Filters.command, manual_name)],
+        MANUAL_DIFFICULTY_PRE: [
+            MessageHandler(Filters.regex("^(Yes|No)$"), manual_difficulty_pre)
         ],
-        MANUAL: [MessageHandler(Filters.text & ~Filters.command, manual)],
+        MANUAL_DIFFICULTY: [
+            MessageHandler(Filters.regex("^(Easy|Medium|Hard)$"), manual_difficulty)
+        ],
         THANKS: [
             MessageHandler(Filters.regex("^(Yes|No)$"), thanks),
             CommandHandler("cancel", cancel),
