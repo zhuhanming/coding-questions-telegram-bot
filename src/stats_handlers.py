@@ -13,6 +13,8 @@ from src.utils import (
     unwrap,
 )
 
+# Summary Generators
+
 
 def generate_individual_summary(records: list[dict], summary_type: SummaryType) -> str:
     if not records:
@@ -57,69 +59,111 @@ def generate_individual_summary(records: list[dict], summary_type: SummaryType) 
     return summary
 
 
-def week(update: Update, _: CallbackContext) -> None:
+def generate_group_summary(records: dict[str, dict], summary_type: SummaryType) -> str:
+    if not records:
+        return "This group has no members! Add yourself using /add_me now."
+    record_list = list(records.values())
+    record_list.sort(key=lambda x: len(x["question_records"]), reverse=True)
+
+    summary = "<b>Questions completed {}:</b>\n".format(summary_type.value)
+    for record in record_list:
+        summary += "{}: {} completed\n".format(
+            record["full_name"], len(record["question_records"])
+        )
+
+    if (
+        summary_type == SummaryType.WEEKLY
+        and min(map(lambda x: len(x["question_records"]), record_list))
+        >= APP_CONFIG["WEEKLY_TARGET"]
+    ):
+        summary += "\nAwesome! Everyone has achieved the weekly target!\n"
+
+    return summary
+
+
+# Summary Helpers
+
+
+def create_and_send_individual_summary(
+    update: Update, summary_type: SummaryType
+) -> None:
     update.message = unwrap(update.message)
-    user = update.effective_user
-    # TODO: Add handling for /week in chats
-    if user is None:
-        return
+    user = unwrap(update.effective_user)
+
     user_dict = SERVICES.user_service.create_if_not_exists(
         full_name=user.full_name, telegram_id=str(user.id)
     )
     records = SERVICES.question_record_service.get_records_by_user(
-        user_id=user_dict["id"], summary_type=SummaryType.WEEKLY
+        user_id=user_dict["id"], summary_type=summary_type
     )
 
-    summary = generate_individual_summary(records, SummaryType.WEEKLY)
+    summary = generate_individual_summary(records, summary_type)
     update.message.reply_text(summary, parse_mode=ParseMode.HTML)
 
 
-def month(update: Update, _: CallbackContext) -> None:
+def create_and_send_group_summary(update: Update, summary_type: SummaryType) -> None:
     update.message = unwrap(update.message)
-    user = update.effective_user
-    # TODO: Add handling for /month in chats
-    if user is None:
-        return
-    user_dict = SERVICES.user_service.create_if_not_exists(
-        full_name=user.full_name, telegram_id=str(user.id)
-    )
-    records = SERVICES.question_record_service.get_records_by_user(
-        user_id=user_dict["id"], summary_type=SummaryType.WEEKLY
+    chat = update.message.chat
+    chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
+    user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
+    records = SERVICES.question_record_service.get_records_by_users(
+        user_ids=[user_dict["id"] for user_dict in user_dicts],
+        summary_type=summary_type,
     )
 
-    summary = generate_individual_summary(records, SummaryType.MONTHLY)
+    summary = generate_group_summary(records, summary_type)
     update.message.reply_text(summary, parse_mode=ParseMode.HTML)
 
 
-def all_questions(update: Update, _: CallbackContext) -> None:
+# Individual Handlers
+
+
+def week(update: Update, context: CallbackContext) -> None:
     update.message = unwrap(update.message)
-    user = update.effective_user
-    # TODO: Add handling for /month in chats
-    if user is None:
+    if update.message.chat.type == "group":
+        week_chat(update, context)
         return
-    user_dict = SERVICES.user_service.create_if_not_exists(
-        full_name=user.full_name, telegram_id=str(user.id)
-    )
-    records = SERVICES.question_record_service.get_records_by_user(
-        user_id=user_dict["id"], summary_type=SummaryType.ALL
-    )
-
-    summary = generate_individual_summary(records, SummaryType.ALL)
-    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
+    create_and_send_individual_summary(update, SummaryType.WEEKLY)
 
 
-def all_unique(update: Update, _: CallbackContext) -> None:
+def month(update: Update, context: CallbackContext) -> None:
     update.message = unwrap(update.message)
-    user = update.effective_user
-    # TODO: Add handling for /month in chats
-    if user is None:
+    if update.message.chat.type == "group":
+        month_chat(update, context)
         return
-    user_dict = SERVICES.user_service.create_if_not_exists(
-        full_name=user.full_name, telegram_id=str(user.id)
-    )
-    records = SERVICES.question_record_service.get_records_by_user(
-        user_id=user_dict["id"], summary_type=SummaryType.ALL_UNIQUE
-    )
+    create_and_send_individual_summary(update, SummaryType.MONTHLY)
 
-    summary = generate_individual_summary(records, SummaryType.ALL_UNIQUE)
-    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
+
+def all_questions(update: Update, context: CallbackContext) -> None:
+    update.message = unwrap(update.message)
+    if update.message.chat.type == "group":
+        all_questions_chat(update, context)
+        return
+    create_and_send_individual_summary(update, SummaryType.ALL)
+
+
+def all_unique(update: Update, context: CallbackContext) -> None:
+    update.message = unwrap(update.message)
+    if update.message.chat.type == "group":
+        all_unique_chat(update, context)
+        return
+    create_and_send_individual_summary(update, SummaryType.ALL_UNIQUE)
+
+
+# Group Handlers
+
+
+def week_chat(update: Update, _: CallbackContext) -> None:
+    create_and_send_group_summary(update, SummaryType.WEEKLY)
+
+
+def month_chat(update: Update, _: CallbackContext) -> None:
+    create_and_send_group_summary(update, SummaryType.MONTHLY)
+
+
+def all_questions_chat(update: Update, _: CallbackContext) -> None:
+    create_and_send_group_summary(update, SummaryType.ALL)
+
+
+def all_unique_chat(update: Update, _: CallbackContext) -> None:
+    create_and_send_group_summary(update, SummaryType.ALL_UNIQUE)
