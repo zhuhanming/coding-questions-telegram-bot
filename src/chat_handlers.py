@@ -1,4 +1,4 @@
-from telegram import Update, ParseMode
+from telegram import ParseMode, Update
 from telegram.ext import CallbackContext
 
 from src.exceptions import ResourceNotFoundException
