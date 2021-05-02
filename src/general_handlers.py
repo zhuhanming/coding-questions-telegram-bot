@@ -8,21 +8,24 @@ from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
+from src.utils import unwrap
 
 
 def start(update: Update, _: CallbackContext) -> None:
     """Sends a default welcome message when the /start command is issued"""
-    user = update.effective_user
-    if user is None or update.message is None:
-        return
+    # Unwrap and fail fast
+    user = unwrap(update.effective_user)
+    update.message = unwrap(update.message)
+
     SERVICES.logger.info("User started: %s %s", user.id, user.full_name)
     update.message.reply_text("Hello {}!".format(user.full_name))
 
 
 def unknown_message(update: Update, _: CallbackContext) -> None:
     """Sends a default message when an unknown command was issued"""
-    if update.message is None:
-        return
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+
     update.message.reply_text("Unfortunately, I don't recognise this command!")
 
 
@@ -69,7 +72,7 @@ def error_handler(update: object, context: CallbackContext) -> None:
         )
 
     casted_update = cast(Update, update)
-    if casted_update.message is None:
+    if casted_update is None or casted_update.message is None:
         return
 
     casted_update.message.reply_text(
