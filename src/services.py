@@ -73,7 +73,10 @@ class QuestionRecordService:
                 raise ResourceNotFoundException()
 
             question_record = QuestionRecord(
-                user_id=user_id, platform=platform, question_name=question_name, difficulty=difficulty
+                user_id=user_id,
+                platform=platform,
+                question_name=question_name,
+                difficulty=difficulty,
             )
 
             session.add(question_record)

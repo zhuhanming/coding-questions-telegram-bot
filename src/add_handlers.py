@@ -259,7 +259,10 @@ def thanks(update: Update, context: CallbackContext) -> int:
         full_name=user.full_name, telegram_id=str(user.id)
     )
     SERVICES.question_record_service.create_question_record(
-        user_id=user_dict["id"], platform=platform, question_name=question_name, difficulty=difficulty
+        user_id=user_dict["id"],
+        platform=platform,
+        question_name=question_name,
+        difficulty=difficulty,
     )
 
     SERVICES.logger.info(
@@ -268,7 +271,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
         user_dict["full_name"],
         question_name,
         platform,
-        difficulty
+        difficulty,
     )
 
     context.user_data.clear()
