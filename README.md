@@ -40,7 +40,7 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 `/week`: To see a summary of how many questions each chat group member has completed this week.
 
-`/week_detailed`: **WIP**. To see a detailed list of the questions that each chat group member has completed this week.
+`/week_detailed`: To see a detailed list of the questions that each chat group member has completed this week.
 
 `/month`: To see a summary of how many questions each chat group member has completed this month.
 
