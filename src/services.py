@@ -24,6 +24,7 @@ from src.schemata import (
     UUID_RULE,
     validate_input,
 )
+from src.utils import SummaryType
 
 
 class UserService:
@@ -81,45 +82,30 @@ class QuestionRecordService:
             return question_record.asdict()
 
     @validate_input(GET_QUESTION_RECORD_SCHEMA)
-    def get_all_records_by_user(self, user_id: str) -> list[dict]:
-        with session_scope() as session:
-            question_orders = (
-                session.query(QuestionRecord)
-                .filter_by(user_id=user_id)
-                .order_by(QuestionRecord.created_at)
-                .all()
-            )
-            return [question_order.asdict() for question_order in question_orders]
-
-    @validate_input(GET_QUESTION_RECORD_SCHEMA)
-    def get_records_by_user_for_this_week(self, user_id: str) -> list[dict]:
+    def get_records_by_user(
+        self, user_id: str, summary_type: Optional[SummaryType] = None
+    ) -> list[dict]:
         now = datetime.now()
-        monday = (now - timedelta(days=now.weekday())).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        with session_scope() as session:
-            question_orders = (
-                session.query(QuestionRecord)
-                .filter_by(user_id=user_id)
-                .filter(QuestionRecord.created_at >= monday)
-                .order_by(QuestionRecord.created_at)
-                .all()
+        before_date = None
+        if summary_type == SummaryType.WEEKLY:
+            before_date = (now - timedelta(days=now.weekday())).replace(
+                hour=0, minute=0, second=0, microsecond=0
             )
-            return [question_order.asdict() for question_order in question_orders]
+        elif summary_type == SummaryType.MONTHLY:
+            before_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-    @validate_input(GET_QUESTION_RECORD_SCHEMA)
-    def get_records_by_user_for_this_month(self, user_id: str) -> list[dict]:
-        start_of_month = datetime.now().replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )
         with session_scope() as session:
-            question_orders = (
-                session.query(QuestionRecord)
-                .filter_by(user_id=user_id)
-                .filter(QuestionRecord.created_at >= start_of_month)
-                .order_by(QuestionRecord.created_at)
-                .all()
-            )
+            query = session.query(QuestionRecord).filter_by(user_id=user_id)
+            if before_date is not None:
+                query = query.filter(QuestionRecord.created_at >= before_date)
+            if summary_type == SummaryType.ALL_UNIQUE:
+                query = query.distinct(
+                    QuestionRecord.question_name, QuestionRecord.platform
+                )
+                question_orders = query.all()
+            else:
+                question_orders = query.order_by(QuestionRecord.created_at).all()
+
             return [question_order.asdict() for question_order in question_orders]
 
 
