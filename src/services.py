@@ -65,7 +65,7 @@ class QuestionRecordService:
 
     @validate_input(CREATE_QUESTION_RECORD_SCHEMA)
     def create_question_record(
-        self, user_id: str, platform: str, question_name: str
+        self, user_id: str, platform: str, question_name: str, difficulty: str
     ) -> dict:
         with session_scope() as session:
             user = session.query(User).get(user_id)
@@ -73,7 +73,7 @@ class QuestionRecordService:
                 raise ResourceNotFoundException()
 
             question_record = QuestionRecord(
-                user_id=user_id, platform=platform, question_name=question_name
+                user_id=user_id, platform=platform, question_name=question_name, difficulty=difficulty
             )
 
             session.add(question_record)

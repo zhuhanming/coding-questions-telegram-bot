@@ -23,16 +23,18 @@ def generate_individual_summary(records: list[dict], summary_type: SummaryType) 
     summary = "<b>Questions you have completed {}:</b>\n".format(summary_type.value)
     for i, record in enumerate(records):
         if summary_type == SummaryType.ALL_UNIQUE:
-            summary += "{}. {} [{}]\n".format(
+            summary += "{}. {} [{}] [{}]\n".format(
                 i + 1,
                 record["question_name"],
+                record["difficulty"].title(),
                 format_platform_name(record["platform"]),
             )
             continue
 
-        summary += "{}. {} [{}] ({})\n".format(
+        summary += "{}. {} [{}] [{}] ({})\n".format(
             i + 1,
             record["question_name"],
+            record["difficulty"].title(),
             format_platform_name(record["platform"]),
             record["created_at"].strftime(strftime_format),
         )

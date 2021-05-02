@@ -253,22 +253,22 @@ def thanks(update: Update, context: CallbackContext) -> int:
     platform = context.user_data.get("PLATFORM")
     question_name = context.user_data.get("QUESTION_NAME")
     difficulty = context.user_data.get("QUESTION_DIFFICULTY")
-    print(difficulty)
 
     # Persist data to database
     user_dict = SERVICES.user_service.create_if_not_exists(
         full_name=user.full_name, telegram_id=str(user.id)
     )
     SERVICES.question_record_service.create_question_record(
-        user_id=user_dict["id"], platform=platform, question_name=question_name
+        user_id=user_dict["id"], platform=platform, question_name=question_name, difficulty=difficulty
     )
 
     SERVICES.logger.info(
-        "User (%s, %s) added question: %s [%s]",
+        "User (%s, %s) added question: %s [%s] [%s]",
         user_dict["telegram_id"],
         user_dict["full_name"],
         question_name,
         platform,
+        difficulty
     )
 
     context.user_data.clear()
