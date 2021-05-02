@@ -1,6 +1,6 @@
 # Coding Questions Bot
 
-![Lint Badge](https://github.com/zhuhanming/coding-questions-bot/workflows/Lint/badge.svg)&nbsp;&nbsp;![Deployment Badge](https://github.com/zhuhanming/coding-questions-bot/workflows/Deploy%20via%20SSH/badge.svg)&nbsp;[![CodeBeat Badge](https://codebeat.co/badges/a55a5fb0-6d46-41af-ba3d-0c733c8ef40b)](https://codebeat.co/a/zhu-hanming/projects/github-com-zhuhanming-coding-questions-bot-main)
+![Lint Badge](https://github.com/zhuhanming/coding-questions-bot/workflows/Lint/badge.svg)&nbsp;&nbsp;![Deployment Badge](https://github.com/zhuhanming/coding-questions-bot/workflows/Deploy%20via%20SSH/badge.svg)&nbsp;&nbsp;[![CodeBeat Badge](https://codebeat.co/badges/a55a5fb0-6d46-41af-ba3d-0c733c8ef40b)](https://codebeat.co/a/zhu-hanming/projects/github-com-zhuhanming-coding-questions-bot-main)
 
 Have you ever joined a small Telegram group to keep each other accountable in LeetCoding (and on other platforms like HackerRank), only to slowly get tired of manually keeping track of the questions you did?
 
@@ -46,6 +46,6 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 ### Additional Functionalities + TODO
 
-Weekly reminders: **WIP**. To routinely remind members to do their questions, e.g. one day before the week ends.
+Weekly reminders: **WIP**. To routinely remind members to do their questions and mock interviews, e.g. one day before the week ends.
 
 Add support for question difficulty: **WIP**.
