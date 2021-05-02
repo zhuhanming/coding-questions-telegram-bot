@@ -2,7 +2,8 @@ from typing import Optional, TypeVar
 
 from src.exceptions import InvalidUnwrapException
 
-SUMMARY_STRFTIME_FORMAT = "%A"
+WEEK_SUMMARY_STRFTIME_FORMAT = "%A"
+MONTH_SUMMARY_STRFTIME_FORMAT = "%b %d"
 T = TypeVar("T")
 
 
