@@ -121,6 +121,7 @@ class InterviewPair(Base):
         UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
 
+    started_at = Column(DateTime(timezone=True), nullable=False)
     is_completed = Column(Boolean, nullable=False, server_default="f")
     completed_at = Column(DateTime(timezone=True))
 
