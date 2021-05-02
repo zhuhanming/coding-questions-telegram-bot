@@ -51,4 +51,4 @@ CREATE_QUESTION_RECORD_SCHEMA = {
     "platform": {"type": "string", "allowed": ["leetcode", "hackerrank", "other"]},
     "question_name": {"type": "string"},
 }
-GET_QUESTION_RECORD_SCHEMA = {"user_id": UUID_RULE}
+GET_QUESTION_RECORD_SCHEMA = {"user_id": UUID_RULE, "summary_type": {"required": False}}
