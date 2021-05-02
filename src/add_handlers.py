@@ -3,7 +3,6 @@ from typing import Optional
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    ParseMode,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     Update,
@@ -284,7 +283,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
     )
 
     summary = generate_individual_summary(records, SummaryType.WEEKLY)
-    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
+    update.message.reply_html(summary)
     return ConversationHandler.END
 
 

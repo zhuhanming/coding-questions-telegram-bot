@@ -1,4 +1,4 @@
-from telegram import ParseMode, Update
+from telegram import Update
 from telegram.ext import CallbackContext
 
 from src.exceptions import ResourceNotFoundException
@@ -93,7 +93,7 @@ def chat_members(update: Update, _: CallbackContext) -> None:
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
 
     message = generate_user_list(chat_dict, user_dicts)
-    update.message.reply_text(message, parse_mode=ParseMode.HTML)
+    update.message.reply_html(message)
 
 
 def add_me(update: Update, _: CallbackContext) -> None:
@@ -128,4 +128,4 @@ def add_me(update: Update, _: CallbackContext) -> None:
 
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
     message = generate_user_list(chat_dict, user_dicts)
-    update.message.reply_text(message, parse_mode=ParseMode.HTML)
+    update.message.reply_html(message)
