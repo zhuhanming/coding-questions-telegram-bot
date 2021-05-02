@@ -1,4 +1,4 @@
-from telegram import ParseMode, Update
+from telegram import Update
 from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
@@ -81,6 +81,38 @@ def generate_group_summary(records: dict[str, dict], summary_type: SummaryType) 
     return summary
 
 
+def generate_detailed_group_summary(
+    records: dict[str, dict], summary_type: SummaryType
+) -> str:
+    if not records:
+        return "This group has no members! Add yourself using /add_me now."
+    record_list = list(records.values())
+    record_list.sort(key=lambda x: len(x["question_records"]), reverse=True)
+
+    summary = "<b>Questions completed {}:</b>\n".format(summary_type.value)
+    for record in record_list:
+        summary += "{}: {} completed\n".format(
+            record["full_name"], len(record["question_records"])
+        )
+        for i, question_record in enumerate(record["question_records"]):
+            summary += "{}. {} [{}] [{}]\n".format(
+                i + 1,
+                question_record["question_name"],
+                question_record["difficulty"].title(),
+                format_platform_name(question_record["platform"]),
+            )
+        summary += "\n"
+
+    if (
+        summary_type == SummaryType.WEEKLY
+        and min(map(lambda x: len(x["question_records"]), record_list))
+        >= APP_CONFIG["WEEKLY_TARGET"]
+    ):
+        summary += "Awesome! Everyone has achieved the weekly target!\n"
+
+    return summary
+
+
 # Summary Helpers
 
 
@@ -98,10 +130,12 @@ def create_and_send_individual_summary(
     )
 
     summary = generate_individual_summary(records, summary_type)
-    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
+    update.message.reply_html(summary)
 
 
-def create_and_send_group_summary(update: Update, summary_type: SummaryType) -> None:
+def create_and_send_group_summary(
+    update: Update, summary_type: SummaryType, is_detailed: bool = False
+) -> None:
     update.message = unwrap(update.message)
     chat = update.message.chat
     chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
@@ -111,8 +145,12 @@ def create_and_send_group_summary(update: Update, summary_type: SummaryType) -> 
         summary_type=summary_type,
     )
 
-    summary = generate_group_summary(records, summary_type)
-    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
+    summary = (
+        generate_group_summary(records, summary_type)
+        if not is_detailed
+        else generate_detailed_group_summary(records, summary_type)
+    )
+    update.message.reply_html(summary)
 
 
 # Individual Handlers
@@ -155,6 +193,14 @@ def all_unique(update: Update, context: CallbackContext) -> None:
 
 def week_chat(update: Update, _: CallbackContext) -> None:
     create_and_send_group_summary(update, SummaryType.WEEKLY)
+
+
+def week_detailed(update: Update, _: CallbackContext) -> None:
+    update.message = unwrap(update.message)
+    if update.message.chat.type != "group":
+        update.message.reply_text("Please use this command in a chat group!")
+        return
+    create_and_send_group_summary(update, SummaryType.WEEKLY, is_detailed=True)
 
 
 def month_chat(update: Update, _: CallbackContext) -> None:

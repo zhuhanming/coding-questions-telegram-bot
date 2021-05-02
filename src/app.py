@@ -9,7 +9,7 @@ from src.chat_handlers import (
 )
 from src.config import APP_CONFIG
 from src.general_handlers import error_handler, start, unknown_message
-from src.stats_handlers import all_questions, all_unique, month, week
+from src.stats_handlers import all_questions, all_unique, month, week, week_detailed
 
 
 def main() -> None:
@@ -27,6 +27,7 @@ def main() -> None:
     # Group commands
     dispatcher.add_handler(CommandHandler("members", chat_members))
     dispatcher.add_handler(CommandHandler("add_me", add_me))
+    dispatcher.add_handler(CommandHandler("week_detailed", week_detailed))
 
     # General handlers
     dispatcher.add_handler(
