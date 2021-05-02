@@ -26,7 +26,7 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 `/all`: To see a summary of all questions that you have completed (and registered with the bot).
 
-`/all_unique`: To see a summary of all _unique_ questions that you have completed (and registered with the bot). Uniqueness is determined by the name of the question and the platform the question is from (**WIP**: deduplicate based on the difficulty of the question).
+`/all_unique`: To see a summary of all _unique_ questions that you have completed (and registered with the bot). Uniqueness is determined by the name of the question and the platform the question is from, and its difficulty.
 
 `/past_pairs`: **WIP**. To view all mock interview partners that you have practiced with.
 
@@ -38,14 +38,18 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 `/add_me`: To add yourself to the list of members in the chat.
 
-`/week`: **WIP**. To see a summary of how many questions each chat group member has completed this week.
+`/week`: To see a summary of how many questions each chat group member has completed this week.
 
 `/week_detailed`: **WIP**. To see a detailed list of the questions that each chat group member has completed this week.
+
+`/month`: To see a summary of how many questions each chat group member has completed this month.
+
+`/all`: To see a summary of how many questions each chat group member has completed ever (and registered with the bot).
+
+`/all_unique`: To see a summary of how many _unique_ questions each chat group member has completed (and registered with the bot). Uniqueness is determined by the name of the question, the platform the question is from, and its difficulty.
 
 `/interview_pairs`: **WIP**. To generate the mock interview pairs for the week. Once generated, it should not change for the rest of the week. Subsequent usage of the same command will instead show a summary of which pairs have completed their mock interviews, and which have not.
 
 ### Additional Functionalities + TODO
 
 Weekly reminders: **WIP**. To routinely remind members to do their questions and mock interviews, e.g. one day before the week ends.
-
-Add support for question difficulty: **WIP**.
