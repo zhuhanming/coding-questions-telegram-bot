@@ -15,6 +15,12 @@ class SummaryType(Enum):
     ALL_UNIQUE = "all time (unique)"
 
 
+class QuestionInfo:
+    def __init__(self, name: Optional[str], difficulty: Optional[str]):
+        self.name = name
+        self.difficulty = difficulty
+
+
 def unwrap(optional: Optional[T]) -> T:
     if optional is None:
         raise InvalidUnwrapException()

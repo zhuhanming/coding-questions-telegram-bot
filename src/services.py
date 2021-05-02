@@ -5,6 +5,7 @@ from time import sleep
 from typing import Optional
 
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -19,12 +20,11 @@ from src.schemata import (
     GET_CHAT_SCHEMA,
     GET_QUESTION_RECORD_SCHEMA,
     GET_USER_SCHEMA,
-    HACKERRANK_RULE,
-    LEETCODE_RULE,
+    QUESTION_URL_RULE,
     UUID_RULE,
     validate_input,
 )
-from src.utils import SummaryType
+from src.utils import QuestionInfo, SummaryType
 
 
 class UserService:
@@ -195,7 +195,7 @@ class BelongService:
             return belong is not None
 
 
-class QuestionNameService:
+class QuestionInfoService:
     def __init__(self, config: Config):
         self.config = config
         chrome_options = Options()
@@ -207,77 +207,62 @@ class QuestionNameService:
             ChromeDriverManager().install(), options=chrome_options
         )
 
-    @validate_input({"url": LEETCODE_RULE})
-    def get_leetcode_question_name(self, url: str) -> Optional[str]:
+    @validate_input({"url": QUESTION_URL_RULE, "is_leetcode": {"type": "boolean"}})
+    def get_question_info(self, url: str, is_leetcode: bool) -> QuestionInfo:
         self.driver.get(url)
         sleep(0.5)
         page_name = str(self.driver.title)
 
-        if self.__is_invalid_leetcode_page_name(page_name):
-            return None
+        if self.__is_invalid_page_name(page_name):
+            question_name = self.__parse_url_directly(url, is_leetcode)
+            return QuestionInfo(question_name, None)
 
-        question_name = page_name[:-11]
-        return question_name
+        question_name = page_name[:-11] if is_leetcode else page_name[:-13]
+        difficulty = self.__get_difficulty(is_leetcode)
 
-    @validate_input({"url": LEETCODE_RULE})
-    def parse_leetcode_url_directly(self, url: str) -> Optional[str]:
-        split_url = url.split("/problems/")
-        if len(split_url) < 2:
-            return None
-        problem_name_kebab = split_url[1]
-        problem_name_split = problem_name_kebab.split("-")
-        problem_name = " ".join(list(map(lambda x: x.title(), problem_name_split)))
+        return QuestionInfo(question_name, difficulty)
 
-        if problem_name[-1] == "/":
-            problem_name = problem_name[:-1]
-
-        return problem_name
-
-    def __is_invalid_leetcode_page_name(self, page_name: str) -> bool:
+    def __is_invalid_page_name(self, page_name: str) -> bool:
         if not page_name:
             return True
         page_name = page_name.lower()
-        invalid_strings = ["account login", "page not found"]
+        invalid_strings = ["account login", "access denied", "page not found"]
         for invalid_string in invalid_strings:
             if invalid_string in page_name:
                 return True
-        return False
+        return len(page_name) <= 11
 
-    @validate_input({"url": HACKERRANK_RULE})
-    def get_hackerrank_question_name(self, url: str) -> Optional[str]:
-        self.driver.get(url)
-        sleep(0.5)
-        page_name = str(self.driver.title)
-
-        if self.__is_invalid_hackerrank_page_name(page_name):
-            return None
-
-        question_name = page_name[:-13]
-        return question_name
-
-    @validate_input({"url": HACKERRANK_RULE})
-    def parse_hackerrank_url_directly(self, url: str) -> Optional[str]:
-        split_url = url.split("/challenges/")
+    def __parse_url_directly(self, url: str, is_leetcode: bool) -> Optional[str]:
+        split_url = (
+            url.split("/problems/") if is_leetcode else url.split("/challenges/")
+        )
         if len(split_url) < 2:
             return None
-        problem_name_kebab = split_url[1].split("/")[0]
-        problem_name_split = problem_name_kebab.split("-")
-        problem_name = " ".join(list(map(lambda x: x.title(), problem_name_split)))
+        question_name_kebab = split_url[1].split("/")[0]
+        question_name_split = question_name_kebab.split("-")
+        question_name = " ".join(list(map(lambda x: x.title(), question_name_split)))
 
-        if problem_name[-1] == "/":
-            problem_name = problem_name[:-1]
+        if question_name[-1] == "/":
+            question_name = question_name[:-1]
 
-        return problem_name
+        return question_name
 
-    def __is_invalid_hackerrank_page_name(self, page_name: str) -> bool:
-        if not page_name:
-            return True
-        page_name = page_name.lower()
-        invalid_strings = ["access denied", "page not found"]
-        for invalid_string in invalid_strings:
-            if invalid_string in page_name:
-                return True
-        return len(page_name) <= 13
+    def __get_difficulty(self, is_leetcode: bool) -> Optional[str]:
+        difficulties = ["easy", "medium", "hard"]
+        for difficulty in difficulties:
+            try:
+                _ = self.driver.find_element_by_css_selector(
+                    (
+                        "span.difficulty-label.label-{}"
+                        if is_leetcode
+                        else "div.difficulty-block > p.difficulty-{}"
+                    ).format(difficulty.title() if is_leetcode else difficulty)
+                )
+                return difficulty
+            except NoSuchElementException as e:
+                print(e)
+                continue
+        return None
 
 
 class Services:
@@ -287,7 +272,7 @@ class Services:
         self.chat_service = ChatService(config)
         self.belong_service = BelongService(config)
         self.question_record_service = QuestionRecordService(config)
-        self.question_name_service = QuestionNameService(config)
+        self.question_info_service = QuestionInfoService(config)
         self.logger = logger
 
 
