@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, TypeVar
 
@@ -49,3 +50,15 @@ def platform_to_int(platform: str) -> int:
     if platform.lower() == "hackerrank":
         return 1
     return 2
+
+
+def get_start_of_week() -> datetime:
+    now = datetime.now()
+    return (now - timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+def get_start_of_month() -> datetime:
+    now = datetime.now()
+    return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
