@@ -1,4 +1,4 @@
-from telegram import Update
+from telegram import Update, ParseMode
 from telegram.ext import CallbackContext
 
 from src.exceptions import ResourceNotFoundException
@@ -10,7 +10,7 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
     if not users:
         return "There are no members in this chat!\nPlease add yourself with the /add_me command."
 
-    message = "Members in {}:\n".format(chat["title"])
+    message = "<b>Members in {}:</b>\n".format(chat["title"])
     for user in users:
         message += "{}\n".format(user["full_name"])
     message += (
@@ -41,15 +41,15 @@ def new_chat_member_handler(update: Update, _: CallbackContext) -> None:
         added_new_users.append(user)
 
     chat = update.message.chat
-    chat = SERVICES.chat_service.create_if_not_exists(
+    chat_dict = SERVICES.chat_service.create_if_not_exists(
         title=chat.title, telegram_id=str(chat.id)
     )
-    for user in added_new_users:
+    for user_dict in added_new_users:
         SERVICES.belong_service.add_user_to_chat_if_not_inside(
-            user_id=user["id"], chat_id=chat["id"]
+            user_id=user_dict["id"], chat_id=chat_dict["id"]
         )
         SERVICES.logger.info(
-            "Added {} to chat {}".format(user["full_name"], chat["title"])
+            "Added {} to chat {}".format(user_dict["full_name"], chat_dict["title"])
         )
 
 
@@ -60,11 +60,11 @@ def left_chat_member_handler(update: Update, _: CallbackContext) -> None:
         return
 
     user = update.message.left_chat_member
+    chat = update.message.chat
     try:
         user_dict = SERVICES.user_service.get_user_by_telegram_id(
             telegram_id=str(user.id)
         )
-        chat = update.message.chat
         chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(
             telegram_id=str(chat.id)
         )
@@ -88,10 +88,10 @@ def chat_members(update: Update, _: CallbackContext) -> None:
         update.message.reply_text("I'm only talking to you here!")
         return
     chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
-    user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat["id"])
+    user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
 
     message = generate_user_list(chat_dict, user_dicts)
-    update.message.reply_text(message)
+    update.message.reply_text(message, parse_mode=ParseMode.HTML)
 
 
 def add_me(update: Update, _: CallbackContext) -> None:
@@ -126,4 +126,4 @@ def add_me(update: Update, _: CallbackContext) -> None:
 
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
     message = generate_user_list(chat_dict, user_dicts)
-    update.message.reply_text(message)
+    update.message.reply_text(message, parse_mode=ParseMode.HTML)
