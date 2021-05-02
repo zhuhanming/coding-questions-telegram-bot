@@ -7,7 +7,9 @@ from src.utils import (
     MONTH_ALL_SUMMARY_STRFTIME_FORMAT,
     WEEK_SUMMARY_STRFTIME_FORMAT,
     SummaryType,
+    difficulty_to_int,
     format_platform_name,
+    platform_to_int,
     unwrap,
 )
 
@@ -19,6 +21,13 @@ def generate_individual_summary(records: list[dict], summary_type: SummaryType) 
 
     if summary_type == SummaryType.WEEKLY:
         strftime_format = WEEK_SUMMARY_STRFTIME_FORMAT
+    if summary_type == SummaryType.ALL_UNIQUE:
+        records.sort(
+            key=lambda x: (
+                difficulty_to_int(x["difficulty"]),
+                platform_to_int(x["platform"]),
+            )
+        )
 
     summary = "<b>Questions you have completed {}:</b>\n".format(summary_type.value)
     for i, record in enumerate(records):
