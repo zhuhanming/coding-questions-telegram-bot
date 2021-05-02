@@ -9,7 +9,7 @@ from src.chat_handlers import (
 )
 from src.config import APP_CONFIG
 from src.general_handlers import error_handler, start, unknown_message
-from src.stats_handlers import week
+from src.stats_handlers import month, week
 
 
 def main() -> None:
@@ -19,6 +19,7 @@ def main() -> None:
     # Individual commands
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("week", week))
+    dispatcher.add_handler(CommandHandler("month", month))
     dispatcher.add_handler(add_conv_handler)
 
     # Group commands

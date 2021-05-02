@@ -107,6 +107,21 @@ class QuestionRecordService:
             )
             return [question_order.asdict() for question_order in question_orders]
 
+    @validate_input(GET_QUESTION_RECORD_SCHEMA)
+    def get_records_by_user_for_this_month(self, user_id: str) -> list[dict]:
+        start_of_month = datetime.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        with session_scope() as session:
+            question_orders = (
+                session.query(QuestionRecord)
+                .filter_by(user_id=user_id)
+                .filter(QuestionRecord.created_at >= start_of_month)
+                .order_by(QuestionRecord.created_at)
+                .all()
+            )
+            return [question_order.asdict() for question_order in question_orders]
+
 
 class ChatService:
     def __init__(self, config: Config):

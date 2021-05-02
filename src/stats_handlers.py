@@ -1,25 +1,45 @@
-from telegram import Update
+from telegram import Update, ParseMode
 from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
-from src.utils import SUMMARY_STRFTIME_FORMAT, format_platform_name, unwrap
+from src.utils import (
+    MONTH_SUMMARY_STRFTIME_FORMAT,
+    WEEK_SUMMARY_STRFTIME_FORMAT,
+    format_platform_name,
+    unwrap,
+)
 
 
 def generate_weekly_summary(records: list[dict]) -> str:
     if not records:
         return "You have not completed any questions this week!"
-    summary = "Questions you have completed this week:\n\n"
+    summary = "<b>Questions you have completed this week:</b>\n"
     for i, record in enumerate(records):
         summary += "{}. {} [{}] ({})\n".format(
             i + 1,
             record["question_name"],
             format_platform_name(record["platform"]),
-            record["created_at"].strftime(SUMMARY_STRFTIME_FORMAT),
+            record["created_at"].strftime(WEEK_SUMMARY_STRFTIME_FORMAT),
         )
 
     if len(records) >= APP_CONFIG["WEEKLY_TARGET"]:
         summary += "\nAwesome! You have achieved the weekly target!\n"
+
+    return summary
+
+
+def generate_monthly_summary(records: list[dict]) -> str:
+    if not records:
+        return "You have not completed any questions this month!"
+    summary = "<b>Questions you have completed this month:</b>\n"
+    for i, record in enumerate(records):
+        summary += "{}. {} [{}] ({})\n".format(
+            i + 1,
+            record["question_name"],
+            format_platform_name(record["platform"]),
+            record["created_at"].strftime(MONTH_SUMMARY_STRFTIME_FORMAT),
+        )
 
     return summary
 
@@ -38,4 +58,21 @@ def week(update: Update, _: CallbackContext) -> None:
     )
 
     summary = generate_weekly_summary(records)
-    update.message.reply_text(summary)
+    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
+
+
+def month(update: Update, _: CallbackContext) -> None:
+    update.message = unwrap(update.message)
+    user = update.effective_user
+    # TODO: Add handling for /month in chats
+    if user is None:
+        return
+    user_dict = SERVICES.user_service.create_if_not_exists(
+        full_name=user.full_name, telegram_id=str(user.id)
+    )
+    records = SERVICES.question_record_service.get_records_by_user_for_this_month(
+        user_id=user_dict["id"]
+    )
+
+    summary = generate_monthly_summary(records)
+    update.message.reply_text(summary, parse_mode=ParseMode.HTML)
