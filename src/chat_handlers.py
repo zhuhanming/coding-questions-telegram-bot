@@ -84,7 +84,7 @@ def chat_members(update: Update, _: CallbackContext) -> None:
     update.message = unwrap(update.message)
 
     chat = update.message.chat
-    if chat.type == "private":
+    if chat.type != "group":
         update.message.reply_text("I'm only talking to you here!")
         return
     chat_dict = SERVICES.chat_service.create_if_not_exists(
@@ -102,7 +102,7 @@ def add_me(update: Update, _: CallbackContext) -> None:
     user = unwrap(update.effective_user)
 
     chat = update.message.chat
-    if chat.type == "private":
+    if chat.type != "group":
         update.message.reply_text("Please use this command in a chat group!")
         return
 
