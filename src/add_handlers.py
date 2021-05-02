@@ -1,6 +1,7 @@
 from typing import Optional
 
 from telegram import (
+    InlineKeyboardButton,
     InlineKeyboardMarkup,
     ParseMode,
     ReplyKeyboardMarkup,
@@ -15,7 +16,6 @@ from telegram.ext import (
     Filters,
     MessageHandler,
 )
-from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 
 from src.config import APP_CONFIG
 from src.exceptions import InvalidUserDataException
@@ -25,9 +25,9 @@ from src.utils import unwrap
 
 URL, CONFIRM, MANUAL_NAME, MANUAL_DIFFICULTY_PRE, MANUAL_DIFFICULTY, THANKS = range(6)
 PLATFORMS = ["leetcode", "hackerrank"]
-ADD_KEYBOARD = [["LeetCode", "HackerRank", "Other"]]
-DIFFICULTY_KEYBOARD = [["Easy", "Medium", "Hard"]]
-CONFIRM_KEYBOARD = [["Yes", "No"]]
+ADD_KEYBOARD = [["LeetCode"], ["HackerRank"], ["Other"]]
+DIFFICULTY_KEYBOARD = [["Easy"], ["Medium"], ["Hard"]]
+CONFIRM_KEYBOARD = [["Yes"], ["No"]]
 GET_STARTED_KEYBOARD = [
     [InlineKeyboardButton(text="Get started", url=APP_CONFIG["BOT_URL"])]
 ]
