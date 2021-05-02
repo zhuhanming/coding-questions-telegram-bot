@@ -93,6 +93,9 @@ class Chat(Base):
     belongs_in_chat = relationship(
         "Belong", back_populates="chat", foreign_keys="[Belong.chat_id]"
     )
+    interview_pairs = relationship(
+        "InterviewPair", back_populates="chat", foreign_keys="[InterviewPair.chat_id]"
+    )
 
 
 class Belong(Base):
@@ -120,6 +123,7 @@ class InterviewPair(Base):
     user_two_id = Column(
         UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    chat_id = Column(UUID, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
 
     started_at = Column(DateTime(timezone=True), nullable=False)
     is_completed = Column(Boolean, nullable=False, server_default="f")
@@ -130,6 +134,9 @@ class InterviewPair(Base):
     )
     user_two = relationship(
         "User", back_populates="interview_pairs_as_user_two", foreign_keys=[user_two_id]
+    )
+    chat = relationship(
+        "Chat", back_populates="interview_pairs", foreign_keys=[chat_id]
     )
 
 
