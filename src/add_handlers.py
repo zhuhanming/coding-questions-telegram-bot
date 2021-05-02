@@ -18,7 +18,7 @@ from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
-from src.stats_handlers import generate_weekly_summary
+from src.stats_handlers import SummaryType, generate_individual_summary
 from src.utils import unwrap
 
 URL, CONFIRM, MANUAL, THANKS = range(4)
@@ -212,11 +212,11 @@ def thanks(update: Update, context: CallbackContext) -> int:
         "Awesome! Good job with the question!", reply_markup=ReplyKeyboardRemove()
     )
 
-    records = SERVICES.question_record_service.get_records_by_user_for_this_week(
-        user_id=user_dict["id"]
+    records = SERVICES.question_record_service.get_records_by_user(
+        user_id=user_dict["id"], summary_type=SummaryType.WEEKLY
     )
 
-    summary = generate_weekly_summary(records)
+    summary = generate_individual_summary(records, SummaryType.WEEKLY)
     update.message.reply_text(summary)
     return ConversationHandler.END
 
