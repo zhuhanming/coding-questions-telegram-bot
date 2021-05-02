@@ -35,10 +35,10 @@ def new_chat_member_handler(update: Update, _: CallbackContext) -> None:
 
         if user.is_bot:
             continue
-        user = SERVICES.user_service.create_if_not_exists(
+        user_dict = SERVICES.user_service.create_if_not_exists(
             full_name=user.full_name, telegram_id=str(user.id)
         )
-        added_new_users.append(user)
+        added_new_users.append(user_dict)
 
     chat = update.message.chat
     chat_dict = SERVICES.chat_service.create_if_not_exists(
@@ -87,7 +87,9 @@ def chat_members(update: Update, _: CallbackContext) -> None:
     if chat.type == "private":
         update.message.reply_text("I'm only talking to you here!")
         return
-    chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
+    chat_dict = SERVICES.chat_service.create_if_not_exists(
+        title=chat.title, telegram_id=str(chat.id)
+    )
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
 
     message = generate_user_list(chat_dict, user_dicts)
