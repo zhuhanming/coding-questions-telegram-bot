@@ -18,7 +18,8 @@ from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
-from src.utils import generate_weekly_summary, unwrap
+from src.stats_handlers import generate_weekly_summary
+from src.utils import unwrap
 
 URL, CONFIRM, MANUAL, THANKS = range(4)
 PLATFORMS = ["leetcode", "hackerrank"]
@@ -31,9 +32,9 @@ GET_STARTED_KEYBOARD = [
 
 def add(update: Update, context: CallbackContext) -> Optional[int]:
     """Kicks off the question adding process and asks user for the platform used."""
-    user = update.effective_user
-    if user is None or update.message is None:
-        return ConversationHandler.END
+    # Unwrap and fail fast
+    user = unwrap(update.effective_user)
+    update.message = unwrap(update.message)
 
     if update.message.chat.type != "private":
         try:
@@ -59,12 +60,14 @@ def add(update: Update, context: CallbackContext) -> Optional[int]:
 
 def url(update: Update, context: CallbackContext) -> int:
     """Acknowledges the platform selected and asks for the URL from the user."""
-    if update.message is None:
-        return ConversationHandler.END
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    context.user_data = unwrap(context.user_data)
+
     platform = unwrap(update.message.text).lower()
     assert platform in PLATFORMS
 
-    unwrap(context.user_data)[APP_CONFIG["PLATFORM_KEY"]] = platform
+    context.user_data[APP_CONFIG["PLATFORM_KEY"]] = platform
     update.message.reply_text(
         "Please send me the URL of the question you just attempted!\n"
         "You can also send /cancel to cancel.",
@@ -75,12 +78,15 @@ def url(update: Update, context: CallbackContext) -> int:
 
 def other(update: Update, context: CallbackContext) -> int:
     """Handles the case where the user selects Other."""
-    if update.message is None:
-        return ConversationHandler.END
-    platform = unwrap(update.message.text).lower()
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+
+    platform = update.message.text.lower()
     assert platform == "other"
 
-    unwrap(context.user_data)[APP_CONFIG["PLATFORM_KEY"]] = platform
+    context.user_data[APP_CONFIG["PLATFORM_KEY"]] = platform
     update.message.reply_text(
         "Do you mind letting me know what the name of the question you attempted was?",
         reply_markup=ReplyKeyboardRemove(),
@@ -90,10 +96,13 @@ def other(update: Update, context: CallbackContext) -> int:
 
 def confirm(update: Update, context: CallbackContext) -> int:
     """Fetches the question title and confirms it with the user."""
-    if update.message is None:
-        return ConversationHandler.END
-    url = unwrap(update.message.text).lower()
-    platform = unwrap(context.user_data).get(APP_CONFIG["PLATFORM_KEY"])
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+
+    url = update.message.text.lower()
+    platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
 
     assert platform in PLATFORMS
     update.message.reply_text(
@@ -130,9 +139,7 @@ def confirm(update: Update, context: CallbackContext) -> int:
             reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
         )
 
-        unwrap(context.user_data)[
-            APP_CONFIG["QUESTION_NAME_KEY"]
-        ] = best_effort_question_name
+        context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]] = best_effort_question_name
         return THANKS
 
     update.message.reply_text(
@@ -141,29 +148,36 @@ def confirm(update: Update, context: CallbackContext) -> int:
         reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
     )
 
-    unwrap(context.user_data)[APP_CONFIG["QUESTION_NAME_KEY"]] = question_name
+    context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]] = question_name
     return THANKS
 
 
 def manual(update: Update, context: CallbackContext) -> int:
     """Acknowledges the manual entry and confirms it with the user."""
-    if update.message is None:
-        return ConversationHandler.END
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+
     question_name = update.message.text
     update.message.reply_text(
         "Just to confirm, is your question title: {}?".format(question_name),
         reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
     )
 
-    unwrap(context.user_data)[APP_CONFIG["QUESTION_NAME_KEY"]] = question_name
+    context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]] = question_name
     return THANKS
 
 
 def thanks(update: Update, context: CallbackContext) -> int:
     """Acknowledges the confirmation and persists the data into the database."""
-    if update.message is None:
-        return ConversationHandler.END
-    confirmation = unwrap(update.message.text).lower()
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+    user = unwrap(update.effective_user)
+
+    confirmation = update.message.text.lower()
 
     if confirmation == "no":
         update.message.reply_text(
@@ -171,13 +185,11 @@ def thanks(update: Update, context: CallbackContext) -> int:
             "Do you mind sending the name of the question here?\n"
             "Or send /cancel to cancel."
         )
-        if context.user_data is not None:
-            del context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]]
+        del context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]]
         return MANUAL
 
-    user = unwrap(update.effective_user)
-    platform = unwrap(context.user_data).get(APP_CONFIG["PLATFORM_KEY"])
-    question_name = unwrap(context.user_data).get(APP_CONFIG["QUESTION_NAME_KEY"])
+    platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
+    question_name = context.user_data.get(APP_CONFIG["QUESTION_NAME_KEY"])
 
     # Persist data to database
     user_dict = SERVICES.user_service.create_if_not_exists(
@@ -195,7 +207,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
         platform,
     )
 
-    unwrap(context.user_data).clear()
+    context.user_data.clear()
     update.message.reply_text(
         "Awesome! Good job with the question!", reply_markup=ReplyKeyboardRemove()
     )
@@ -211,13 +223,15 @@ def thanks(update: Update, context: CallbackContext) -> int:
 
 def cancel(update: Update, context: CallbackContext) -> int:
     """Fallback that ends the conversation and clears any cached data."""
-    if update.message is None:
-        return ConversationHandler.END
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    context.user_data = unwrap(context.user_data)
+
     update.message.reply_text(
         "No worries! Come back again soon!", reply_markup=ReplyKeyboardRemove()
     )
-    if context.user_data is not None:
-        context.user_data.clear()
+
+    context.user_data.clear()
     return ConversationHandler.END
 
 
