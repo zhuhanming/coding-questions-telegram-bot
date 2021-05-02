@@ -3,12 +3,28 @@ from telegram.ext import CallbackContext
 
 from src.exceptions import ResourceNotFoundException
 from src.services import SERVICES
-from src.utils import generate_user_list, unwrap
+from src.utils import unwrap
+
+
+def generate_user_list(chat: dict, users: list[dict]) -> str:
+    if not users:
+        return "There are no members in this chat!\nPlease add yourself with the /add_me command."
+
+    message = "Members in {}:\n".format(chat["title"])
+    for user in users:
+        message += "{}\n".format(user["full_name"])
+    message += (
+        "\nIf you're not in the list, please add yourself with the /add_me command."
+    )
+    return message
 
 
 def new_chat_member_handler(update: Update, _: CallbackContext) -> None:
-    if not update.message:
+    """Adds all new non-bot users to the current chat group."""
+    if update.message is None:
+        # Fail silently
         return
+
     new_users = update.message.new_chat_members
     added_new_users = []
     for user in new_users:
@@ -38,8 +54,11 @@ def new_chat_member_handler(update: Update, _: CallbackContext) -> None:
 
 
 def left_chat_member_handler(update: Update, _: CallbackContext) -> None:
+    """Removes all non-bot users who left from the current chat group."""
     if update.message is None or update.message.left_chat_member is None:
+        # Fail silently
         return
+
     user = update.message.left_chat_member
     try:
         user_dict = SERVICES.user_service.get_user_by_telegram_id(
@@ -56,12 +75,14 @@ def left_chat_member_handler(update: Update, _: CallbackContext) -> None:
             "Removed {} from chat {}".format(user_dict["full_name"], chat_dict["title"])
         )
     except ResourceNotFoundException:
+        # User did not exist in the group. Fail silently.
         return
 
 
 def chat_members(update: Update, _: CallbackContext) -> None:
-    if update.message is None:
-        return
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+
     chat = update.message.chat
     if chat.type == "private":
         update.message.reply_text("I'm only talking to you here!")
@@ -74,8 +95,10 @@ def chat_members(update: Update, _: CallbackContext) -> None:
 
 
 def add_me(update: Update, _: CallbackContext) -> None:
-    if update.message is None:
-        return
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    user = unwrap(update.effective_user)
+
     chat = update.message.chat
     if chat.type == "private":
         update.message.reply_text("Please use this command in a chat group!")
@@ -84,7 +107,6 @@ def add_me(update: Update, _: CallbackContext) -> None:
     chat_dict = SERVICES.chat_service.create_if_not_exists(
         title=chat.title, telegram_id=str(chat.id)
     )
-    user = unwrap(update.effective_user)
     user_dict = SERVICES.user_service.create_if_not_exists(
         full_name=user.full_name, telegram_id=str(user.id)
     )
