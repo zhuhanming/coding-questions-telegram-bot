@@ -22,11 +22,11 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 `/week`: To see a summary of the questions that you have completed this week. Note that repeated questions can appear, if you chose to reattempt the same question.
 
-`/month`: **WIP**. To see a summary of the questions that you have completed this month.
+`/month`: To see a summary of the questions that you have completed this month.
 
-`/all`: **WIP**. To see a summary of all questions that you have completed (and registered with the bot).
+`/all`: To see a summary of all questions that you have completed (and registered with the bot).
 
-`/all_unique`: **WIP**. To see a summary of all _unique_ questions that you have completed (and registered with the bot).
+`/all_unique`: To see a summary of all _unique_ questions that you have completed (and registered with the bot). Uniqueness is determined by the name of the question and the platform the question is from (**WIP**: deduplicate based on the difficulty of the question).
 
 `/past_pairs`: **WIP**. To view all mock interview partners that you have practiced with.
 
