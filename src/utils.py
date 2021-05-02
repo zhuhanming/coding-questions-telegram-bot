@@ -1,10 +1,18 @@
+from enum import Enum
 from typing import Optional, TypeVar
 
 from src.exceptions import InvalidUnwrapException
 
 WEEK_SUMMARY_STRFTIME_FORMAT = "%A"
-MONTH_SUMMARY_STRFTIME_FORMAT = "%b %d"
+MONTH_ALL_SUMMARY_STRFTIME_FORMAT = "%-d %b"
 T = TypeVar("T")
+
+
+class SummaryType(Enum):
+    WEEKLY = "this week"
+    MONTHLY = "this month"
+    ALL = "all time"
+    ALL_UNIQUE = "all time (unique)"
 
 
 def unwrap(optional: Optional[T]) -> T:
