@@ -61,6 +61,7 @@ class QuestionRecord(Base):
     user_id = Column(UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     platform = Column(String, nullable=False)
     question_name = Column(String, nullable=False)
+    difficulty = Column(String, nullable=False)
 
     user = relationship("User", back_populates="question_records")
 
