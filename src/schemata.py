@@ -1,6 +1,6 @@
 from functools import wraps
 
-from cerberus import Validator
+from cerberus import Validator  # type: ignore
 
 from src.exceptions import InvalidRequestException
 

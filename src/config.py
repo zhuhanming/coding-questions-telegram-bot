@@ -1,6 +1,9 @@
 from os import getenv
+from typing import TypedDict
 
 from dotenv import load_dotenv
+
+from src.utils import unwrap
 
 load_dotenv()
 
@@ -12,10 +15,24 @@ elif BOT_ENV == "TEST":
     DEFAULT_DATABASE_URL = "postgresql://coding_questions_bot:coding_questions_bot@localhost/coding_questions_bot_test"
 DATABASE_URL = getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
-APP_CONFIG = {
+Config = TypedDict(
+    "Config",
+    {
+        "DATABASE_URL": str,
+        "BOT_ACCESS_TOKEN": str,
+        "DEVELOPER_ID": str,
+        "WEEKLY_TARGET": int,
+        "PLATFORM_KEY": str,
+        "TRACEBACK_LENGTH": int,
+        "QUESTION_NAME_KEY": str,
+        "BOT_URL": str,
+    },
+)
+
+APP_CONFIG: Config = {
     "DATABASE_URL": DATABASE_URL,
-    "BOT_ACCESS_TOKEN": getenv("BOT_ACCESS_TOKEN"),
-    "DEVELOPER_ID": getenv("DEVELOPER_ID"),
+    "BOT_ACCESS_TOKEN": unwrap(getenv("BOT_ACCESS_TOKEN")),
+    "DEVELOPER_ID": unwrap(getenv("DEVELOPER_ID")),
     "WEEKLY_TARGET": 7,
     "PLATFORM_KEY": "PLATFORM",
     "TRACEBACK_LENGTH": 3000,

@@ -12,3 +12,7 @@ class InvalidRequestException(BotException):
         message="Uh oh! It seems like something's wrong with the information you've told me!",
     ):
         self.message = message
+
+
+class InvalidUnwrapException(BotException):
+    message = "Unwrap called on None"

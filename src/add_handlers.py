@@ -18,7 +18,8 @@ from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
-from src.utils import generate_weekly_summary
+from src.stats_handlers import generate_weekly_summary
+from src.utils import unwrap
 
 URL, CONFIRM, MANUAL, THANKS = range(4)
 PLATFORMS = ["leetcode", "hackerrank"]
@@ -31,7 +32,9 @@ GET_STARTED_KEYBOARD = [
 
 def add(update: Update, context: CallbackContext) -> Optional[int]:
     """Kicks off the question adding process and asks user for the platform used."""
-    user = update.effective_user
+    # Unwrap and fail fast
+    user = unwrap(update.effective_user)
+    update.message = unwrap(update.message)
 
     if update.message.chat.type != "private":
         try:
@@ -43,7 +46,8 @@ def add(update: Update, context: CallbackContext) -> Optional[int]:
                 "You need to start a conversation with me first!",
                 reply_markup=InlineKeyboardMarkup(GET_STARTED_KEYBOARD),
             )
-        return
+        finally:
+            return ConversationHandler.END
 
     update.message.reply_text(
         "Hi {}! Glad to see that you've been working hard!\n".format(user.full_name)
@@ -56,7 +60,11 @@ def add(update: Update, context: CallbackContext) -> Optional[int]:
 
 def url(update: Update, context: CallbackContext) -> int:
     """Acknowledges the platform selected and asks for the URL from the user."""
-    platform = update.message.text.lower()
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    context.user_data = unwrap(context.user_data)
+
+    platform = unwrap(update.message.text).lower()
     assert platform in PLATFORMS
 
     context.user_data[APP_CONFIG["PLATFORM_KEY"]] = platform
@@ -70,8 +78,14 @@ def url(update: Update, context: CallbackContext) -> int:
 
 def other(update: Update, context: CallbackContext) -> int:
     """Handles the case where the user selects Other."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+
     platform = update.message.text.lower()
     assert platform == "other"
+
     context.user_data[APP_CONFIG["PLATFORM_KEY"]] = platform
     update.message.reply_text(
         "Do you mind letting me know what the name of the question you attempted was?",
@@ -82,6 +96,11 @@ def other(update: Update, context: CallbackContext) -> int:
 
 def confirm(update: Update, context: CallbackContext) -> int:
     """Fetches the question title and confirms it with the user."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+
     url = update.message.text.lower()
     platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
 
@@ -135,6 +154,11 @@ def confirm(update: Update, context: CallbackContext) -> int:
 
 def manual(update: Update, context: CallbackContext) -> int:
     """Acknowledges the manual entry and confirms it with the user."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+
     question_name = update.message.text
     update.message.reply_text(
         "Just to confirm, is your question title: {}?".format(question_name),
@@ -147,6 +171,11 @@ def manual(update: Update, context: CallbackContext) -> int:
 
 def thanks(update: Update, context: CallbackContext) -> int:
     """Acknowledges the confirmation and persists the data into the database."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    context.user_data = unwrap(context.user_data)
+    user = unwrap(update.effective_user)
 
     confirmation = update.message.text.lower()
 
@@ -159,22 +188,21 @@ def thanks(update: Update, context: CallbackContext) -> int:
         del context.user_data[APP_CONFIG["QUESTION_NAME_KEY"]]
         return MANUAL
 
-    user = update.effective_user
     platform = context.user_data.get(APP_CONFIG["PLATFORM_KEY"])
     question_name = context.user_data.get(APP_CONFIG["QUESTION_NAME_KEY"])
 
     # Persist data to database
-    user = SERVICES.user_service.create_if_not_exists(
+    user_dict = SERVICES.user_service.create_if_not_exists(
         full_name=user.full_name, telegram_id=str(user.id)
     )
     SERVICES.question_record_service.create_question_record(
-        user_id=user["id"], platform=platform, question_name=question_name
+        user_id=user_dict["id"], platform=platform, question_name=question_name
     )
 
     SERVICES.logger.info(
         "User (%s, %s) added question: %s [%s]",
-        user["telegram_id"],
-        user["full_name"],
+        user_dict["telegram_id"],
+        user_dict["full_name"],
         question_name,
         platform,
     )
@@ -185,7 +213,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
     )
 
     records = SERVICES.question_record_service.get_records_by_user_for_this_week(
-        user_id=user["id"]
+        user_id=user_dict["id"]
     )
 
     summary = generate_weekly_summary(records)
@@ -195,9 +223,14 @@ def thanks(update: Update, context: CallbackContext) -> int:
 
 def cancel(update: Update, context: CallbackContext) -> int:
     """Fallback that ends the conversation and clears any cached data."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    context.user_data = unwrap(context.user_data)
+
     update.message.reply_text(
         "No worries! Come back again soon!", reply_markup=ReplyKeyboardRemove()
     )
+
     context.user_data.clear()
     return ConversationHandler.END
 

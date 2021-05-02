@@ -1,27 +1,35 @@
 import html
 import json
 import traceback
+from typing import cast
 
 from telegram import ParseMode, Update
 from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
 from src.services import SERVICES
+from src.utils import unwrap
 
 
 def start(update: Update, _: CallbackContext) -> None:
     """Sends a default welcome message when the /start command is issued"""
-    user = update.effective_user
+    # Unwrap and fail fast
+    user = unwrap(update.effective_user)
+    update.message = unwrap(update.message)
+
     SERVICES.logger.info("User started: %s %s", user.id, user.full_name)
     update.message.reply_text("Hello {}!".format(user.full_name))
 
 
 def unknown_message(update: Update, _: CallbackContext) -> None:
     """Sends a default message when an unknown command was issued"""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+
     update.message.reply_text("Unfortunately, I don't recognise this command!")
 
 
-def error_handler(update: Update, context: CallbackContext) -> None:
+def error_handler(update: object, context: CallbackContext) -> None:
     """Log the error and send a telegram message to notify the developer."""
     # Log the error before we do anything else, so we can see it even if something breaks.
     SERVICES.logger.error(
@@ -31,7 +39,9 @@ def error_handler(update: Update, context: CallbackContext) -> None:
     # traceback.format_exception returns the usual python message about an exception, but as a
     # list of strings rather than a single string, so we have to join them together.
     tb_list = traceback.format_exception(
-        None, context.error, context.error.__traceback__
+        None,
+        context.error,
+        context.error.__traceback__ if context.error is not None else None,
     )
     tb_string = "".join(tb_list)
 
@@ -61,6 +71,10 @@ def error_handler(update: Update, context: CallbackContext) -> None:
             chat_id=APP_CONFIG["DEVELOPER_ID"], text=message, parse_mode=ParseMode.HTML
         )
 
-    update.message.reply_text(
+    casted_update = cast(Update, update)
+    if casted_update is None or casted_update.message is None:
+        return
+
+    casted_update.message.reply_text(
         "Uh oh, something went wrong! I've already informed my developer about this."
     )
