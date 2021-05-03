@@ -1,5 +1,3 @@
-from typing import Optional
-
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -32,7 +30,7 @@ GET_STARTED_KEYBOARD = [
 ]
 
 
-def add(update: Update, context: CallbackContext) -> Optional[int]:
+def add(update: Update, context: CallbackContext) -> int:
     """Kicks off the question adding process and asks user for the platform used."""
     # Unwrap and fail fast
     user = unwrap(update.effective_user)
@@ -317,10 +315,7 @@ add_conv_handler = ConversationHandler(
         MANUAL_DIFFICULTY: [
             MessageHandler(Filters.regex("^(Easy|Medium|Hard)$"), manual_difficulty)
         ],
-        THANKS: [
-            MessageHandler(Filters.regex("^(Yes|No)$"), thanks),
-            CommandHandler("cancel", cancel),
-        ],
+        THANKS: [MessageHandler(Filters.regex("^(Yes|No)$"), thanks)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
 )
