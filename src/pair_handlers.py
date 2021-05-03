@@ -65,7 +65,7 @@ def notify_partner(context: CallbackContext, pair: dict):
 def generate_individual_interview_summary(records: list[dict]) -> str:
     if not records:
         return (
-            "You have no mock interviews arranged!"
+            "You have no mock interviews arranged!\n"
             "Join a group with this bot and use the /interview_pairs command to get started!"
         )
 
