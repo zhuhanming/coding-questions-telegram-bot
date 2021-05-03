@@ -32,6 +32,12 @@ def start(update: Update, _: CallbackContext) -> None:
     update.message.reply_text("Hello {}!".format(user.full_name))
 
 
+def cancel(update: Update, _: CallbackContext) -> None:
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    update.message.reply_text("You have no ongoing operation to cancel.")
+
+
 def unknown_message(update: Update, _: CallbackContext) -> None:
     """Sends a default message when an unknown command was issued"""
     # Unwrap and fail fast

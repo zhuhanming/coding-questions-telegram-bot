@@ -8,7 +8,7 @@ from src.chat_handlers import (
     new_chat_member_handler,
 )
 from src.config import APP_CONFIG
-from src.general_handlers import error_handler, start, unknown_message
+from src.general_handlers import cancel, error_handler, start, unknown_message
 from src.pair_handlers import complete_conv_handler, interview_pairs, past_pairs
 from src.stats_handlers import all_questions, all_unique, month, week, week_detailed
 
@@ -34,6 +34,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("interview_pairs", interview_pairs))
 
     # General handlers
+    dispatcher.add_handler(CommandHandler("cancel", cancel))
     dispatcher.add_handler(
         MessageHandler(Filters.text & ~Filters.command, unknown_message)
     )
