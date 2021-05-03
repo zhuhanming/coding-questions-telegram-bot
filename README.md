@@ -1,12 +1,12 @@
-# Coding Questions Bot
+# Coding Questions Tracker
 
 ![Lint Badge](https://github.com/zhuhanming/coding-questions-bot/workflows/Lint/badge.svg)&nbsp;&nbsp;![Deployment Badge](https://github.com/zhuhanming/coding-questions-bot/workflows/Deploy%20via%20SSH/badge.svg)&nbsp;&nbsp;[![CodeBeat Badge](https://codebeat.co/badges/a55a5fb0-6d46-41af-ba3d-0c733c8ef40b)](https://codebeat.co/a/zhu-hanming/projects/github-com-zhuhanming-coding-questions-bot-main)
 
 Have you ever joined a small Telegram group to keep each other accountable in LeetCoding (and on other platforms like HackerRank), only to slowly get tired of manually keeping track of the questions you did?
 
-Or did you ever encounter a situation where arranging mock interview started to wear you out?
+Or did you ever encounter a situation where arranging mock interviews started to wear you out?
 
-Fret not, for Coding Questions Bot is here! This is a Telegram bot built to support groups that wish to keep each other accountable in doing weekly coding questions and mock interviews.
+Fret not, for Coding Questions Tracker is here! This is a Telegram bot built to support groups that wish to keep each other accountable in doing weekly coding questions and mock interviews.
 
 ## Get Started
 
