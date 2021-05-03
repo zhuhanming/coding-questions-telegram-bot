@@ -45,24 +45,22 @@ def generate_group_interview_summary(
 ) -> str:
     if not records:
         return "This group has no members! Add yourself using /add_me now."
-    records.sort(
-        key=lambda x: (x["pair"]["is_completed"], len(x["user_one"]["full_name"]))
-    )
+    records.sort(key=lambda x: (x["is_completed"], x["user_one_name"]))
 
     summary = "<b>Interview Pairings for Week of {}:</b>\n".format(
         get_start_of_week().strftime(MONTH_ALL_SUMMARY_STRFTIME_FORMAT)
     )
     for record in records:
         summary += "{} & {} [{}]\n".format(
-            record["user_one"]["full_name"],
-            record["user_two"]["full_name"],
-            "Completed" if record["pair"]["is_completed"] else "Incomplete",
+            record["user_one_name"],
+            record["user_two_name"],
+            "Completed" if record["is_completed"] else "Incomplete",
         )
 
     if extra_user is not None:
         summary += "\nUnpaired: {}\n".format(extra_user["full_name"])
 
-    if len(list(filter(lambda x: not x["pair"]["is_completed"], records))) == 0:
+    if len(list(filter(lambda x: not x["is_completed"], records))) == 0:
         summary += "\nAwesome! Everyone has completed their interviews!\n"
 
     return summary
@@ -80,8 +78,7 @@ def interview_pairs(update: Update, _: CallbackContext) -> None:
     pairs = SERVICES.pair_service.get_current_pairs_for_chat(chat_id=chat_dict["id"])
 
     paired_users = set(
-        [pair["user_one"]["id"] for pair in pairs]
-        + [pair["user_two"]["id"] for pair in pairs]
+        [item for pair in pairs for item in [pair["user_one_id"], pair["user_two_id"]]]
     )
     new_users = set([user_dict["id"] for user_dict in user_dicts]).difference(
         paired_users
@@ -126,21 +123,19 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
             return ConversationHandler.END
 
     user_dict = SERVICES.user_service.get_user_by_telegram_id(telegram_id=str(user.id))
-    partners = SERVICES.pair_service.get_current_pairs_for_user(user_id=user_dict["id"])
+    pairs = SERVICES.pair_service.get_current_pairs_for_user(user_id=user_dict["id"])
 
-    if len(partners) == 0:
+    if len(pairs) == 0:
         update.message.reply_text(
             "You have no mock interview partners arranged through me for this week!\n"
             "To get paired, please use /interview_pairs in a chat group first."
         )
         return ConversationHandler.END
 
-    incomplete_partners = list(
-        filter(lambda x: not x["pair"]["is_completed"], partners)
-    )
-    context.user_data["INCOMPLETE_PAIRS"] = incomplete_partners
+    incomplete_pairs = list(filter(lambda x: not x["is_completed"], pairs))
+    context.user_data["INCOMPLETE_PAIRS"] = incomplete_pairs
 
-    if len(incomplete_partners) == 0:
+    if len(incomplete_pairs) == 0:
         update.message.reply_text(
             "It seems like you've completed all your mock interviews this week!\n"
             "It may have been your partner who marked this interview as completed.\n"
@@ -148,11 +143,11 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
         )
         return ConversationHandler.END
 
-    if len(incomplete_partners) == 1:
+    if len(incomplete_pairs) == 1:
         update.message.reply_text(
             "Can I confirm that you've completed your mock interview with {}, as part of the {} group?\n".format(
-                incomplete_partners[0]["partner"]["full_name"],
-                incomplete_partners[0]["chat"]["title"],
+                incomplete_pairs[0]["partner_name"],
+                incomplete_pairs[0]["chat_title"],
             )
             + "You can also send /cancel to cancel.",
             reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
@@ -160,12 +155,8 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
         return SINGLE_CONFIRM
 
     keyboard = [
-        [
-            "{} (from group: {})".format(
-                partner["partner"]["full_name"], partner["chat"]["title"]
-            )
-        ]
-        for partner in incomplete_partners
+        ["{}. {} [{}]".format(i + 1, pair["partner_name"], pair["chat_title"])]
+        for i, pair in enumerate(incomplete_pairs)
     ]
     update.message.reply_text(
         "You have multiple mock interviews arranged via me for this week!\n"
@@ -174,6 +165,23 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
     )
     return LIST_CONFIRM
+
+
+def notify_partner(context: CallbackContext, pair: dict):
+    partner_dict = SERVICES.user_service.get_user_by_id(id=pair["partner_id"])
+    try:
+        context.bot.send_message(
+            chat_id=partner_dict["telegram_id"],
+            text="Your mock interview with {} [{}] has been marked as completed by them!".format(
+                pair["self_name"], pair["chat_title"]
+            ),
+        )
+    except Unauthorized:
+        SERVICES.logger.info(
+            "Could not notify partner: %s [%s]",
+            pair["partner_name"],
+            pair["chat_title"],
+        )
 
 
 def single_confirm(update: Update, context: CallbackContext) -> int:
@@ -193,10 +201,18 @@ def single_confirm(update: Update, context: CallbackContext) -> int:
 
     pairs = context.user_data.get("INCOMPLETE_PAIRS")
     assert isinstance(pairs, list) and len(pairs) == 1
-    SERVICES.pair_service.mark_pair_as_completed(id=pairs[0]["pair"]["id"])
+    SERVICES.pair_service.mark_pair_as_completed(id=pairs[0]["id"])
     update.message.reply_text(
         "Awesome! I have marked it as completed.", reply_markup=ReplyKeyboardRemove()
     )
+    SERVICES.logger.info(
+        "%s and %s [%s] have completed their mock interview",
+        pairs[0]["self_name"],
+        pairs[0]["partner_name"],
+        pairs[0]["chat_title"],
+    )
+    notify_partner(context, pairs[0])
+
     return ConversationHandler.END
 
 
@@ -207,23 +223,26 @@ def list_confirm(update: Update, context: CallbackContext) -> int:
         raise InvalidUserDataException()
 
     selected_option = update.message.text
-    user_name, chat_name = selected_option.split(" (from group: ", 1)
-    chat_name = chat_name[:-1]
-
+    index, rest = selected_option.split(". ", 1)
     pairs = context.user_data.get("INCOMPLETE_PAIRS")
     assert isinstance(pairs, list) and len(pairs) > 1
-    selected_pair = list(
-        filter(
-            lambda x: x["partner"]["full_name"] == user_name
-            and x["chat"]["title"] == chat_name,
-            pairs,
-        )
-    )[0]
 
-    SERVICES.pair_service.mark_pair_as_completed(id=selected_pair["pair"]["id"])
+    selected_pair = pairs[int(index) - 1]
+    assert rest == "{} [{}]".format(
+        selected_pair["partner_name"], selected_pair["chat_title"]
+    )
+
+    SERVICES.pair_service.mark_pair_as_completed(id=selected_pair["id"])
     update.message.reply_text(
         "Awesome! I have marked it as completed.", reply_markup=ReplyKeyboardRemove()
     )
+    SERVICES.logger.info(
+        "%s and %s [%s] have completed their mock interview",
+        selected_pair["self_name"],
+        selected_pair["partner_name"],
+        selected_pair["chat_title"],
+    )
+    notify_partner(context, selected_pair)
 
     return ConversationHandler.END
 
