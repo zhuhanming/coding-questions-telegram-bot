@@ -57,7 +57,4 @@ jobs:
         run: poetry install
 
       - name: Lint files
-        run: |
-          poetry run black --check .
-          poetry run isort --diff --check-only .
-          poetry run flake8 --select=F
+        run: ./lint.sh

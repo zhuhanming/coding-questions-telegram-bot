@@ -10,7 +10,67 @@ Fret not, for Coding Questions Tracker is here! This is a Telegram bot built to 
 
 ## Get Started
 
-You can get started with the Coding Questions Tracker by clicking [here](http://t.me/CodingQuestionsBot). Note that this bot is still a **work in progress**, so expect some downtime here and there, as well as potential database erasure 😓.
+You can get started with the Coding Questions Tracker by clicking [here](http://t.me/CodingQuestionsBot).
+
+## Development Setup
+
+> The setup section and related scripts are largely inspired by those of [Acquity](https://github.com/acquity/api).
+
+First, install Python 3.9. Use [`pyenv`](https://github.com/pyenv/pyenv) to make your life easier.
+
+```bash
+curl https://pyenv.run | bash
+pyenv install 3.9.4 # >= 3.9
+pyenv local 3.9.4
+```
+
+Install [Poetry](https://python-poetry.org), version 1.1.6.
+
+```bash
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | env POETRY_VERSION=1.1.6 python -
+```
+
+Install dependencies by running this in the project root.
+
+```bash
+poetry install
+```
+
+Setup or reset database (make sure you have Postgres installed first!).
+
+```bash
+./setup_db.sh   # Modify the default config to suit your needs
+./run_migrations.sh
+```
+
+Add environment variables from the default values.
+
+```bash
+cp .env.default .env
+```
+
+### Start App
+
+```bash
+./launch.sh
+```
+
+### Test
+
+```bash
+./test.sh
+```
+
+### Lint
+
+```bash
+./lint.sh       # Just check, used in CI
+./lint_fix.sh   # Fix issues
+```
+
+### Deployment Scripts
+
+Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scripts that need to be run on the deployment server. This is due to an issue with the related GitHub SSH action being unable to locate `poetry` otherwise.
 
 ## Commands Available
 

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "coding-questions-bot"
 version = "0.1.0"
-description = ""
+description = "Telegram bot to help groups keep members accountable for interview preparation."
 authors = ["Hanming Zhu <hanming@huawen.com>"]
 
 [tool.poetry.dependencies]
