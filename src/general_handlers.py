@@ -28,7 +28,7 @@ def start(update: Update, _: CallbackContext) -> None:
         )
         return
 
-    SERVICES.logger.info("User started: %s %s", user.id, user.full_name)
+    SERVICES.logger.info("User started: %s", user.full_name)
     update.message.reply_text("Hello {}!".format(user.full_name))
 
 

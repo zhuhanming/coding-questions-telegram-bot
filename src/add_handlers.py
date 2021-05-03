@@ -263,8 +263,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
     )
 
     SERVICES.logger.info(
-        "User (%s, %s) added question: %s [%s] [%s]",
-        user_dict["telegram_id"],
+        "User %s added question: %s [%s] [%s]",
         user_dict["full_name"],
         question_name,
         platform,
