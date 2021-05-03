@@ -30,7 +30,7 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 `/past_pairs`: **WIP**. To view all mock interview partners that you have practiced with.
 
-`/complete_interview`: **WIP**. To mark your mock interview as completed for the week. This will complete it for your partner as well.
+`/complete_interview`: To mark your mock interview as completed for the week. This will complete it for your partner as well.
 
 ### Group
 
