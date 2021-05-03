@@ -139,6 +139,14 @@ class InterviewPair(Base):
         "Chat", back_populates="interview_pairs", foreign_keys=[chat_id]
     )
 
+    @property
+    def additional_things_to_dict(self):
+        return {
+            "user_one_name": self.user_one.full_name,
+            "user_two_name": self.user_two.full_name,
+            "chat_title": self.chat.title,
+        }
+
 
 engine = create_engine(APP_CONFIG["DATABASE_URL"])
 Session = sessionmaker(bind=engine)

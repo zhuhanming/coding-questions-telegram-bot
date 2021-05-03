@@ -7,7 +7,6 @@ from typing import Optional
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
-from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import or_
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -290,33 +289,20 @@ class InterviewPairService:
     def get_current_pairs_for_chat(self, chat_id: str) -> list[dict]:
         monday = get_start_of_week()
         with session_scope() as session:
-            user1 = aliased(User)
-            user2 = aliased(User)
             pairs = (
-                session.query(InterviewPair, user1, user2)
+                session.query(InterviewPair)
                 .filter(InterviewPair.chat_id == chat_id)
                 .filter(InterviewPair.started_at >= monday)
-                .join(user1, InterviewPair.user_one_id == user1.id)
-                .join(user2, InterviewPair.user_two_id == user2.id)
                 .all()
             )
-            return [
-                {
-                    "pair": pair.asdict(),
-                    "user_one": user_one.asdict(),
-                    "user_two": user_two.asdict(),
-                }
-                for pair, user_one, user_two in pairs
-            ]
+            return [pair.asdict() for pair in pairs]
 
     @validate_input({"user_id": UUID_RULE})
     def get_current_pairs_for_user(self, user_id: str) -> list[dict]:
         monday = get_start_of_week()
         with session_scope() as session:
-            user1 = aliased(User)
-            user2 = aliased(User)
             pairs = (
-                session.query(InterviewPair, user1, user2, Chat)
+                session.query(InterviewPair)
                 .filter(InterviewPair.started_at >= monday)
                 .filter(
                     or_(
@@ -324,32 +310,39 @@ class InterviewPairService:
                         InterviewPair.user_two_id == user_id,
                     )
                 )
-                .join(user1, InterviewPair.user_one_id == user1.id)
-                .join(user2, InterviewPair.user_two_id == user2.id)
-                .join(Chat, InterviewPair.chat_id == Chat.id)
                 .all()
             )
             results = []
-            for pair, user_one, user_two, chat in pairs:
-                user_one_dict = user_one.asdict()
-                user_two_dict = user_two.asdict()
+            for pair in pairs:
+                pair_dict = pair.asdict()
+                entry = {}
+                for key, value in pair_dict.items():
+                    if key not in [
+                        "user_one_id",
+                        "user_two_id",
+                        "user_one_name",
+                        "user_two_name",
+                    ]:
+                        entry[key] = value
 
-                if user_one_dict["id"] == user_id:
-                    results.append(
-                        {
-                            "partner": user_two_dict,
-                            "pair": pair.asdict(),
-                            "chat": chat.asdict(),
-                        }
-                    )
-                elif user_two_dict["id"] == user_id:
-                    results.append(
-                        {
-                            "partner": user_one_dict,
-                            "pair": pair.asdict(),
-                            "chat": chat.asdict(),
-                        }
-                    )
+                entry["self_id"] = user_id
+                entry["self_name"] = (
+                    pair_dict["user_one_name"]
+                    if pair_dict["user_one_id"] == user_id
+                    else pair_dict["user_two_name"]
+                )
+                entry["partner_id"] = (
+                    pair_dict["user_two_id"]
+                    if pair_dict["user_one_id"] == user_id
+                    else pair_dict["user_one_id"]
+                )
+                entry["partner_name"] = (
+                    pair_dict["user_two_name"]
+                    if pair_dict["user_one_id"] == user_id
+                    else pair_dict["user_one_name"]
+                )
+
+                results.append(entry)
 
             return results
 
