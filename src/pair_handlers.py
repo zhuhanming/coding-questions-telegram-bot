@@ -28,6 +28,8 @@ GET_STARTED_KEYBOARD = [
     [InlineKeyboardButton(text="Get started", url=APP_CONFIG["BOT_URL"])]
 ]
 
+# Helpers
+
 
 def pair_users(user_ids: set[str]) -> tuple[list[list[str]], Optional[str]]:
     user_id_list = list(user_ids)
@@ -38,6 +40,47 @@ def pair_users(user_ids: set[str]) -> tuple[list[list[str]], Optional[str]]:
         pairs.append([user_id_list[i - 1], user_id_list[i]])
 
     return (pairs, None if len(user_id_list) % 2 == 0 else user_id_list[-1])
+
+
+def notify_partner(context: CallbackContext, pair: dict):
+    partner_dict = SERVICES.user_service.get_user_by_id(id=pair["partner_id"])
+    try:
+        context.bot.send_message(
+            chat_id=partner_dict["telegram_id"],
+            text="Your mock interview with {} [{}] has been marked as completed by them!".format(
+                pair["self_name"], pair["chat_title"]
+            ),
+        )
+    except Unauthorized:
+        SERVICES.logger.info(
+            "Could not notify partner: %s [%s]",
+            pair["partner_name"],
+            pair["chat_title"],
+        )
+
+
+# Summary Generators
+
+
+def generate_individual_interview_summary(records: list[dict]) -> str:
+    if not records:
+        return (
+            "You have no mock interviews arranged!"
+            "Join a group with this bot and use the /interview_pairs command to get started!"
+        )
+
+    summary = "<b>All Past Interview Pairings:</b>\n"
+
+    for i, record in enumerate(records):
+        summary += "{}. {} [{}] [{}] ({})\n".format(
+            i + 1,
+            record["partner_name"],
+            record["chat_title"],
+            record["started_at"].strftime(MONTH_ALL_SUMMARY_STRFTIME_FORMAT),
+            "Completed" if record["is_completed"] else "Incomplete",
+        )
+
+    return summary
 
 
 def generate_group_interview_summary(
@@ -64,6 +107,9 @@ def generate_group_interview_summary(
         summary += "\nAwesome! Everyone has completed their interviews!\n"
 
     return summary
+
+
+# Handlers
 
 
 def interview_pairs(update: Update, _: CallbackContext) -> None:
@@ -114,6 +160,7 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
             context.bot.send_message(
                 chat_id=user.id, text="Please resend /complete_interview here again!"
             )
+            update.message.reply_text("I have messaged you for this!")
         except Unauthorized:
             update.message.reply_text(
                 "You need to start a conversation with me first!",
@@ -123,7 +170,7 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
             return ConversationHandler.END
 
     user_dict = SERVICES.user_service.get_user_by_telegram_id(telegram_id=str(user.id))
-    pairs = SERVICES.pair_service.get_current_pairs_for_user(user_id=user_dict["id"])
+    pairs = SERVICES.pair_service.get_pairs_for_user(user_id=user_dict["id"])
 
     if len(pairs) == 0:
         update.message.reply_text(
@@ -165,23 +212,6 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
     )
     return LIST_CONFIRM
-
-
-def notify_partner(context: CallbackContext, pair: dict):
-    partner_dict = SERVICES.user_service.get_user_by_id(id=pair["partner_id"])
-    try:
-        context.bot.send_message(
-            chat_id=partner_dict["telegram_id"],
-            text="Your mock interview with {} [{}] has been marked as completed by them!".format(
-                pair["self_name"], pair["chat_title"]
-            ),
-        )
-    except Unauthorized:
-        SERVICES.logger.info(
-            "Could not notify partner: %s [%s]",
-            pair["partner_name"],
-            pair["chat_title"],
-        )
 
 
 def single_confirm(update: Update, context: CallbackContext) -> int:
@@ -271,3 +301,31 @@ complete_conv_handler = ConversationHandler(
     },
     fallbacks=[CommandHandler("cancel", cancel)],
 )
+
+
+def past_pairs(update: Update, context: CallbackContext) -> None:
+    # Unwrap and fail fast
+    user = unwrap(update.effective_user)
+    update.message = unwrap(update.message)
+
+    if update.message.chat.type != "private":
+        try:
+            context.bot.send_message(
+                chat_id=user.id, text="Please resend /past_pairs here again!"
+            )
+            update.message.reply_text("I have messaged you for this!")
+        except Unauthorized:
+            update.message.reply_text(
+                "You need to start a conversation with me first!",
+                reply_markup=InlineKeyboardMarkup(GET_STARTED_KEYBOARD),
+            )
+        finally:
+            return
+
+    user_dict = SERVICES.user_service.get_user_by_telegram_id(telegram_id=str(user.id))
+    pairs = SERVICES.pair_service.get_pairs_for_user(
+        user_id=user_dict["id"], is_current=False
+    )
+
+    summary = generate_individual_interview_summary(pairs)
+    update.message.reply_html(summary)

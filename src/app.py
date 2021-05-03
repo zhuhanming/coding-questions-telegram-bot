@@ -9,7 +9,7 @@ from src.chat_handlers import (
 )
 from src.config import APP_CONFIG
 from src.general_handlers import error_handler, start, unknown_message
-from src.pair_handlers import complete_conv_handler, interview_pairs
+from src.pair_handlers import complete_conv_handler, interview_pairs, past_pairs
 from src.stats_handlers import all_questions, all_unique, month, week, week_detailed
 
 
@@ -23,6 +23,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("month", month))
     dispatcher.add_handler(CommandHandler("all", all_questions))
     dispatcher.add_handler(CommandHandler("all_unique", all_unique))
+    dispatcher.add_handler(CommandHandler("past_pairs", past_pairs))
     dispatcher.add_handler(add_conv_handler)
     dispatcher.add_handler(complete_conv_handler)
 
