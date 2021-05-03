@@ -41,6 +41,7 @@ def add(update: Update, context: CallbackContext) -> int:
             context.bot.send_message(
                 chat_id=user.id, text="Please resend /add_question here again!"
             )
+            update.message.reply_text("I have messaged you for this!")
         except Unauthorized:
             update.message.reply_text(
                 "You need to start a conversation with me first!",
