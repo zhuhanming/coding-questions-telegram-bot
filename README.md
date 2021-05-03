@@ -28,7 +28,7 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 `/all_unique`: To see a summary of all _unique_ questions that you have completed (and registered with the bot). Uniqueness is determined by the name of the question and the platform the question is from, and its difficulty.
 
-`/past_pairs`: **WIP**. To view all mock interview partners that you have practiced with.
+`/past_pairs`: To view all mock interview partners that you have practiced with.
 
 `/complete_interview`: To mark your mock interview as completed for the week. This will complete it for your partner as well.
 
