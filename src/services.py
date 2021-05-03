@@ -309,6 +309,62 @@ class InterviewPairService:
                 for pair, user_one, user_two in pairs
             ]
 
+    @validate_input({"user_id": UUID_RULE})
+    def get_current_pairs_for_user(self, user_id: str) -> list[dict]:
+        monday = get_start_of_week()
+        with session_scope() as session:
+            user1 = aliased(User)
+            user2 = aliased(User)
+            pairs = (
+                session.query(InterviewPair, user1, user2, Chat)
+                .filter(InterviewPair.started_at >= monday)
+                .filter(
+                    or_(
+                        InterviewPair.user_one_id == user_id,
+                        InterviewPair.user_two_id == user_id,
+                    )
+                )
+                .join(user1, InterviewPair.user_one_id == user1.id)
+                .join(user2, InterviewPair.user_two_id == user2.id)
+                .join(Chat, InterviewPair.chat_id == Chat.id)
+                .all()
+            )
+            results = []
+            for pair, user_one, user_two, chat in pairs:
+                user_one_dict = user_one.asdict()
+                user_two_dict = user_two.asdict()
+
+                if user_one_dict["id"] == user_id:
+                    results.append(
+                        {
+                            "partner": user_two_dict,
+                            "pair": pair.asdict(),
+                            "chat": chat.asdict(),
+                        }
+                    )
+                elif user_two_dict["id"] == user_id:
+                    results.append(
+                        {
+                            "partner": user_one_dict,
+                            "pair": pair.asdict(),
+                            "chat": chat.asdict(),
+                        }
+                    )
+
+            return results
+
+    @validate_input({"id": UUID_RULE})
+    def mark_pair_as_completed(self, id: str) -> dict:
+        with session_scope() as session:
+            interview_pair: InterviewPair = session.query(InterviewPair).get(id)
+            if interview_pair is None:
+                raise ResourceNotFoundException()
+
+            interview_pair.is_completed = True
+
+            session.commit()
+            return interview_pair.asdict()
+
 
 class QuestionInfoService:
     def __init__(self, config: Config):
