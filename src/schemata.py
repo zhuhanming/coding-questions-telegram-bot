@@ -68,3 +68,7 @@ CREATE_INTERVIEW_PAIRS_SCHEMA = {
     },
     "chat_id": UUID_RULE,
 }
+GET_INTERVIEW_PAIRS_FOR_USER_SCHEMA = {
+    "user_id": UUID_RULE,
+    "is_current": {"type": "boolean", "required": False},
+}

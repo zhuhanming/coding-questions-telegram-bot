@@ -27,6 +27,7 @@ from src.schemata import (
     CREATE_QUESTION_RECORD_SCHEMA,
     CREATE_USER_SCHEMA,
     GET_CHAT_SCHEMA,
+    GET_INTERVIEW_PAIRS_FOR_USER_SCHEMA,
     GET_QUESTION_RECORD_SCHEMA,
     GET_QUESTION_RECORDS_SCHEMA,
     GET_USER_SCHEMA,
@@ -297,21 +298,23 @@ class InterviewPairService:
             )
             return [pair.asdict() for pair in pairs]
 
-    @validate_input({"user_id": UUID_RULE})
-    def get_current_pairs_for_user(self, user_id: str) -> list[dict]:
+    @validate_input(GET_INTERVIEW_PAIRS_FOR_USER_SCHEMA)
+    def get_pairs_for_user(self, user_id: str, is_current: bool = True) -> list[dict]:
         monday = get_start_of_week()
         with session_scope() as session:
-            pairs = (
+            query = (
                 session.query(InterviewPair)
-                .filter(InterviewPair.started_at >= monday)
                 .filter(
                     or_(
                         InterviewPair.user_one_id == user_id,
                         InterviewPair.user_two_id == user_id,
                     )
                 )
-                .all()
+                .order_by(InterviewPair.created_at)
             )
+            if is_current:
+                query = query.filter(InterviewPair.started_at >= monday)
+            pairs = query.all()
             results = []
             for pair in pairs:
                 pair_dict = pair.asdict()
