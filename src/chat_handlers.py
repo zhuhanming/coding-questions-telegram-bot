@@ -19,6 +19,34 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
     return message
 
 
+def chat_created_handler(update: Update, _: CallbackContext) -> None:
+    """Adds all new non-bot users to the current chat group."""
+    if update.message is None:
+        # Fail silently
+        return
+    chat = update.message.chat
+    if chat.type == "private":
+        # Fail silently
+        return
+
+    chat_dict = SERVICES.chat_service.create_if_not_exists(
+        title=chat.title, telegram_id=str(chat.id)
+    )
+
+    user = update.message.from_user
+    if user is not None and not user.is_bot:
+        user_dict = SERVICES.user_service.create_if_not_exists(
+            full_name=user.full_name, telegram_id=str(user.id)
+        )
+        SERVICES.belong_service.add_user_to_chat_if_not_inside(
+            user_id=user_dict["id"], chat_id=chat_dict["id"]
+        )
+
+    update.message.reply_text(
+        "You've just added the Coding Question Bot! Use /add_me to join the tracking for this chat!"
+    )
+
+
 def new_chat_member_handler(update: Update, _: CallbackContext) -> None:
     """Adds all new non-bot users to the current chat group."""
     if update.message is None:
@@ -84,7 +112,7 @@ def chat_members(update: Update, _: CallbackContext) -> None:
     update.message = unwrap(update.message)
 
     chat = update.message.chat
-    if chat.type != "group":
+    if chat.type == "private":
         update.message.reply_text("I'm only talking to you here!")
         return
     chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
@@ -100,7 +128,7 @@ def add_me(update: Update, _: CallbackContext) -> None:
     user = unwrap(update.effective_user)
 
     chat = update.message.chat
-    if chat.type != "group":
+    if chat.type == "private":
         update.message.reply_text("Please use this command in a chat group!")
         return
 

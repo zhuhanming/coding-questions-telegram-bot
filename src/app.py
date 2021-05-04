@@ -3,6 +3,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 from src.add_handlers import add_conv_handler
 from src.chat_handlers import (
     add_me,
+    chat_created_handler,
     chat_members,
     left_chat_member_handler,
     new_chat_member_handler,
@@ -37,6 +38,9 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("cancel", cancel))
     dispatcher.add_handler(
         MessageHandler(Filters.text & ~Filters.command, unknown_message)
+    )
+    dispatcher.add_handler(
+        MessageHandler(Filters.status_update.chat_created, chat_created_handler)
     )
     dispatcher.add_handler(
         MessageHandler(Filters.status_update.new_chat_members, new_chat_member_handler)
