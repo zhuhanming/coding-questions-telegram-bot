@@ -162,7 +162,7 @@ def create_and_send_group_summary(
 
 def week(update: Update, context: CallbackContext) -> None:
     update.message = unwrap(update.message)
-    if update.message.chat.type == "group":
+    if update.message.chat.type != "private":
         week_chat(update, context)
         return
     create_and_send_individual_summary(update, SummaryType.WEEKLY)
@@ -170,7 +170,7 @@ def week(update: Update, context: CallbackContext) -> None:
 
 def month(update: Update, context: CallbackContext) -> None:
     update.message = unwrap(update.message)
-    if update.message.chat.type == "group":
+    if update.message.chat.type != "private":
         month_chat(update, context)
         return
     create_and_send_individual_summary(update, SummaryType.MONTHLY)
@@ -178,7 +178,7 @@ def month(update: Update, context: CallbackContext) -> None:
 
 def all_questions(update: Update, context: CallbackContext) -> None:
     update.message = unwrap(update.message)
-    if update.message.chat.type == "group":
+    if update.message.chat.type != "private":
         all_questions_chat(update, context)
         return
     create_and_send_individual_summary(update, SummaryType.ALL)
@@ -186,7 +186,7 @@ def all_questions(update: Update, context: CallbackContext) -> None:
 
 def all_unique(update: Update, context: CallbackContext) -> None:
     update.message = unwrap(update.message)
-    if update.message.chat.type == "group":
+    if update.message.chat.type != "private":
         all_unique_chat(update, context)
         return
     create_and_send_individual_summary(update, SummaryType.ALL_UNIQUE)
@@ -201,7 +201,7 @@ def week_chat(update: Update, _: CallbackContext) -> None:
 
 def week_detailed(update: Update, _: CallbackContext) -> None:
     update.message = unwrap(update.message)
-    if update.message.chat.type != "group":
+    if update.message.chat.type == "private":
         update.message.reply_text("Please use this command in a chat group!")
         return
     create_and_send_group_summary(update, SummaryType.WEEKLY, is_detailed=True)

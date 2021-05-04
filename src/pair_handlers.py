@@ -115,7 +115,7 @@ def generate_group_interview_summary(
 def interview_pairs(update: Update, _: CallbackContext) -> None:
     """Generates pairs for the group for members who have yet to be paired, and lists all pairs out."""
     update.message = unwrap(update.message)
-    if update.message.chat.type != "group":
+    if update.message.chat.type == "private":
         update.message.reply_text("Please use this command in a chat group!")
         return
     chat = update.message.chat
