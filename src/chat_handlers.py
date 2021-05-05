@@ -11,6 +11,7 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
         return "There are no members in this chat!\nPlease add yourself with the /add_me command."
 
     message = "<b>Members in {}:</b>\n".format(chat["title"])
+    users.sort(key=lambda x: str(x["full_name"]))
     for user in users:
         message += "{}\n".format(user["full_name"])
     message += (
@@ -105,6 +106,20 @@ def left_chat_member_handler(update: Update, _: CallbackContext) -> None:
     except ResourceNotFoundException:
         # User did not exist in the group. Fail silently.
         return
+
+
+def migrate_chat_handler(update: Update, _: CallbackContext) -> None:
+    """Migrates a chat from an old id to a new one. Called when a group is upgraded to a supergroup."""
+    if update.message is None or update.message.migrate_from_chat_id is None:
+        # Fail silently
+        return
+    old_chat_id = update.message.migrate_from_chat_id
+    new_chat_id = update.message.chat.id
+
+    chat_dict = SERVICES.chat_service.migrate_chat_telegram_id(
+        old_telegram_id=str(old_chat_id), new_telegram_id=str(new_chat_id)
+    )
+    SERVICES.logger.info("Migrated {}".format(chat_dict["title"]))
 
 
 def chat_members(update: Update, _: CallbackContext) -> None:

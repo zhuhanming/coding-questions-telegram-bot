@@ -6,6 +6,7 @@ from src.chat_handlers import (
     chat_created_handler,
     chat_members,
     left_chat_member_handler,
+    migrate_chat_handler,
     new_chat_member_handler,
 )
 from src.config import APP_CONFIG
@@ -47,6 +48,9 @@ def main() -> None:
     )
     dispatcher.add_handler(
         MessageHandler(Filters.status_update.left_chat_member, left_chat_member_handler)
+    )
+    dispatcher.add_handler(
+        MessageHandler(Filters.status_update.migrate, migrate_chat_handler)
     )
     dispatcher.add_error_handler(error_handler)
 
