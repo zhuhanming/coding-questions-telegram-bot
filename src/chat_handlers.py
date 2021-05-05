@@ -14,8 +14,8 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
     users.sort(key=lambda x: str(x["full_name"]))
     for user in users:
         message += "{}\n".format(user["full_name"])
-    
-    message += "\nNumber of members: {}\n".format(len(users))
+
+    message += "\nNumber of members: {}".format(len(users))
 
     message += (
         "\nIf you're not in the list, please add yourself with the /add_me command."
@@ -157,10 +157,12 @@ def add_me(update: Update, _: CallbackContext) -> None:
         full_name=user.full_name, telegram_id=str(user.id)
     )
 
+    message = ""
+
     if SERVICES.belong_service.is_user_inside_chat(
         user_id=user_dict["id"], chat_id=chat_dict["id"]
     ):
-        update.message.reply_text("You're already inside this chat group!")
+        message = "You're already inside this chat group!\n\n"
     else:
         SERVICES.belong_service.add_user_to_chat_if_not_inside(
             user_id=user_dict["id"], chat_id=chat_dict["id"]
@@ -168,8 +170,8 @@ def add_me(update: Update, _: CallbackContext) -> None:
         SERVICES.logger.info(
             "Added {} to chat {}".format(user_dict["full_name"], chat_dict["title"])
         )
-        update.message.reply_text("Added you to this chat group!")
+        message = "Added you to this chat group!\n\n"
 
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
-    message = generate_user_list(chat_dict, user_dicts)
+    message += generate_user_list(chat_dict, user_dicts)
     update.message.reply_html(message)
