@@ -76,7 +76,11 @@ class User(Base):
 class QuestionRecord(Base):
     __tablename__ = "question_records"
 
-    user_id = Column(UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        UUID,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
     platform = Column(String, nullable=False)
     question_name = Column(String, nullable=False)
     difficulty = Column(String, nullable=False)
@@ -101,8 +105,16 @@ class Chat(Base):
 class Belong(Base):
     __tablename__ = "belongs"
 
-    user_id = Column(UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    chat_id = Column(UUID, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        UUID,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    chat_id = Column(
+        UUID,
+        ForeignKey("chats.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
 
     chat = relationship(
         "Chat", back_populates="belongs_in_chat", foreign_keys=[chat_id]
@@ -118,12 +130,20 @@ class InterviewPair(Base):
     __tablename__ = "interview_pairs"
 
     user_one_id = Column(
-        UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
     )
     user_two_id = Column(
-        UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
     )
-    chat_id = Column(UUID, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
+    chat_id = Column(
+        UUID,
+        ForeignKey("chats.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
 
     started_at = Column(DateTime(timezone=True), nullable=False)
     is_completed = Column(Boolean, nullable=False, server_default="f")
