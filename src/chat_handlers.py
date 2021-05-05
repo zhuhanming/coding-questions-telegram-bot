@@ -11,7 +11,7 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
         return "There are no members in this chat!\nPlease add yourself with the /add_me command."
 
     message = "<b>Members in {}:</b>\n".format(chat["title"])
-    users.sort(key=lambda x: str(x["full_name"]))
+    users.sort(key=lambda x: str(x["full_name"]).lower())
     for user in users:
         message += "{}\n".format(user["full_name"])
 
