@@ -14,6 +14,9 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
     users.sort(key=lambda x: str(x["full_name"]))
     for user in users:
         message += "{}\n".format(user["full_name"])
+    
+    message += "\nNumber of members: {}\n".format(len(users))
+
     message += (
         "\nIf you're not in the list, please add yourself with the /add_me command."
     )
