@@ -72,5 +72,5 @@ jobs:
             chmod +x ./backups/pg_backup.sh
             ./backups/pg_backup.sh ${{ secrets.REMOTE_DIR }}
             env MANUAL_PATH=1 ./run_migrations.sh ${{ secrets.POETRY_PATH }}
-            pm2 restart coding-questions-bot --update-env
+            pm2 restart coding-questions-bot
             echo =========== Deployment Completed ===========
