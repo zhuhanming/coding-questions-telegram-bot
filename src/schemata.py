@@ -46,6 +46,10 @@ GET_USER_SCHEMA = {"telegram_id": TELEGRAM_USER_ID_RULE}
 
 CREATE_CHAT_SCHEMA = {"title": {"type": "string"}, "telegram_id": {"type": "string"}}
 GET_CHAT_SCHEMA = {"telegram_id": {"type": "string"}}
+MIGRATE_CHAT_SCHEMA = {
+    "old_telegram_id": {"type": "string"},
+    "new_telegram_id": {"type": "string"},
+}
 
 BELONG_SCHEMA = {"user_id": UUID_RULE, "chat_id": UUID_RULE}
 

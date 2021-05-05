@@ -31,6 +31,7 @@ from src.schemata import (
     GET_QUESTION_RECORD_SCHEMA,
     GET_QUESTION_RECORDS_SCHEMA,
     GET_USER_SCHEMA,
+    MIGRATE_CHAT_SCHEMA,
     QUESTION_URL_RULE,
     UUID_RULE,
     validate_input,
@@ -208,6 +209,23 @@ class ChatService:
             )
             if chat is None:
                 raise ResourceNotFoundException()
+            chat_dict = chat.asdict()
+        return chat_dict
+
+    @validate_input(MIGRATE_CHAT_SCHEMA)
+    def migrate_chat_telegram_id(
+        self, old_telegram_id: str, new_telegram_id: str
+    ) -> dict:
+        with session_scope() as session:
+            chat: Optional[Chat] = (
+                session.query(Chat).filter_by(telegram_id=old_telegram_id).one_or_none()
+            )
+            if chat is None:
+                raise ResourceNotFoundException()
+
+            chat.telegram_id = new_telegram_id
+
+            session.commit()
             chat_dict = chat.asdict()
         return chat_dict
 
