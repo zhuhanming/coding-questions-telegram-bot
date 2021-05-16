@@ -51,8 +51,8 @@ def add(update: Update, context: CallbackContext) -> int:
             return ConversationHandler.END
 
     update.message.reply_text(
-        "Hi {}! Glad to see that you've been working hard!\n".format(user.full_name)
-        + "If you don't mind me asking, what platform did you use?\n"
+        f"Hi {user.full_name}! Glad to see that you've been working hard!\n"
+        "If you don't mind me asking, what platform did you use?\n"
         "You can also send /cancel to cancel.",
         reply_markup=ReplyKeyboardMarkup(ADD_KEYBOARD, one_time_keyboard=True),
     )
@@ -144,7 +144,7 @@ def confirm(update: Update, context: CallbackContext) -> int:
     if question_info.difficulty is None:
         update.message.reply_text(
             "I tried my best to get the question title from the website directly!\n"
-            "Is your question title: {}?".format(question_info.name),
+            f"Is your question title: {question_info.name}?",
             reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
         )
         return MANUAL_DIFFICULTY_PRE
@@ -154,9 +154,7 @@ def confirm(update: Update, context: CallbackContext) -> int:
 
     update.message.reply_text(
         "I managed to find the question info from the website directly!\n"
-        "Is your question: {} [{}]?".format(
-            question_info.name, question_info.difficulty.title()
-        ),
+        f"Is your question: {question_info.name} [{question_info.difficulty.title()}]?",
         reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
     )
 
@@ -221,9 +219,7 @@ def manual_difficulty(update: Update, context: CallbackContext) -> int:
     assert question_difficulty is not None
 
     update.message.reply_text(
-        "Just to confirm, is your question: {} [{}]?".format(
-            question_name, question_difficulty.title()
-        ),
+        f"Just to confirm, is your question: {question_name} [{question_difficulty.title()}]?",
         reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
     )
     return THANKS

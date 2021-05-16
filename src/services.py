@@ -435,15 +435,16 @@ class QuestionInfoService:
     def __get_difficulty(self, is_leetcode: bool) -> Optional[str]:
         difficulties = ["easy", "medium", "hard"]
         for difficulty in difficulties:
+            difficulty = difficulty.title() if is_leetcode else difficulty
             try:
                 _ = self.driver.find_element_by_css_selector(
                     (
-                        "span.difficulty-label.label-{}"
+                        f"span.difficulty-label.label-{difficulty}"
                         if is_leetcode
-                        else "div.difficulty-block > p.difficulty-{}"
-                    ).format(difficulty.title() if is_leetcode else difficulty)
+                        else f"div.difficulty-block > p.difficulty-{difficulty}"
+                    )
                 )
-                return difficulty
+                return difficulty.lower()
             except NoSuchElementException:
                 continue
         return None

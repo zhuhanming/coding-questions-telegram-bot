@@ -47,15 +47,14 @@ def notify_partner(context: CallbackContext, pair: dict):
     try:
         context.bot.send_message(
             chat_id=partner_dict["telegram_id"],
+            # Using .format for readability
             text="Your mock interview with {} [{}] has been marked as completed by them!".format(
                 pair["self_name"], pair["chat_title"]
             ),
         )
     except Unauthorized:
         SERVICES.logger.info(
-            "Could not notify partner: %s [%s]",
-            pair["partner_name"],
-            pair["chat_title"],
+            f"Could not notify partner: {pair['partner_name']} [{pair['chat_title']}]",
         )
 
 
@@ -72,6 +71,7 @@ def generate_individual_interview_summary(records: list[dict]) -> str:
     summary = "<b>All Past Interview Pairings:</b>\n"
 
     for i, record in enumerate(records):
+        # Using .format for readability
         summary += "{}. {} [{}] [{}] ({})\n".format(
             i + 1,
             record["partner_name"],
@@ -88,12 +88,11 @@ def generate_group_interview_summary(
 ) -> str:
     if not records:
         return "This group has no members! Add yourself using /add_me now."
-    records.sort(key=lambda x: (x["is_completed"], x["user_one_name"]))
+    records.sort(key=lambda x: (x["is_completed"], x["user_one_name"].lower()))
 
-    summary = "<b>Interview Pairings for Week of {}:</b>\n".format(
-        get_start_of_week().strftime(MONTH_ALL_SUMMARY_STRFTIME_FORMAT)
-    )
+    summary = f"<b>Interview Pairings for Week of {get_start_of_week().strftime(MONTH_ALL_SUMMARY_STRFTIME_FORMAT)}:</b>\n"
     for record in records:
+        # Using .format for readability
         summary += "{} & {} [{}]\n".format(
             record["user_one_name"],
             record["user_two_name"],
@@ -101,7 +100,7 @@ def generate_group_interview_summary(
         )
 
     if extra_user is not None:
-        summary += "\nUnpaired: {}\n".format(extra_user["full_name"])
+        summary += f"\nUnpaired: {extra_user['full_name']}\n"
 
     if len(list(filter(lambda x: not x["is_completed"], records))) == 0:
         summary += "\nAwesome! Everyone has completed their interviews!\n"
@@ -192,6 +191,7 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
 
     if len(incomplete_pairs) == 1:
         update.message.reply_text(
+            # Using .format for readability
             "Can I confirm that you've completed your mock interview with {}, as part of the {} group?\n".format(
                 incomplete_pairs[0]["partner_name"],
                 incomplete_pairs[0]["chat_title"],
@@ -202,7 +202,7 @@ def complete_interview(update: Update, context: CallbackContext) -> int:
         return SINGLE_CONFIRM
 
     keyboard = [
-        ["{}. {} [{}]".format(i + 1, pair["partner_name"], pair["chat_title"])]
+        [f"{i + 1}. {pair['partner_name']} [{pair['chat_title']}]"]
         for i, pair in enumerate(incomplete_pairs)
     ]
     update.message.reply_text(
@@ -258,19 +258,14 @@ def list_confirm(update: Update, context: CallbackContext) -> int:
     assert isinstance(pairs, list) and len(pairs) > 1
 
     selected_pair = pairs[int(index) - 1]
-    assert rest == "{} [{}]".format(
-        selected_pair["partner_name"], selected_pair["chat_title"]
-    )
+    assert rest == f"{selected_pair['partner_name']} [{selected_pair['chat_title']}]"
 
     SERVICES.pair_service.mark_pair_as_completed(id=selected_pair["id"])
     update.message.reply_text(
         "Awesome! I have marked it as completed.", reply_markup=ReplyKeyboardRemove()
     )
     SERVICES.logger.info(
-        "%s and %s [%s] have completed their mock interview",
-        selected_pair["self_name"],
-        selected_pair["partner_name"],
-        selected_pair["chat_title"],
+        f"{selected_pair['self_name']} and {selected_pair['partner_name']} [{selected_pair['chat_title']}] have completed their mock interview"
     )
     notify_partner(context, selected_pair)
 

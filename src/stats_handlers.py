@@ -31,9 +31,10 @@ def generate_individual_summary(records: list[dict], summary_type: SummaryType) 
             )
         )
 
-    summary = "<b>Questions you have completed {}:</b>\n".format(summary_type.value)
+    summary = f"<b>Questions you have completed {summary_type.value}:</b>\n"
     for i, record in enumerate(records):
         if summary_type == SummaryType.ALL_UNIQUE:
+            # Using .format for readability
             summary += "{}. {} [{}] [{}]\n".format(
                 i + 1,
                 record["question_name"],
@@ -42,6 +43,7 @@ def generate_individual_summary(records: list[dict], summary_type: SummaryType) 
             )
             continue
 
+        # Using .format for readability
         summary += "{}. {} [{}] [{}] ({})\n".format(
             i + 1,
             record["question_name"],
@@ -65,8 +67,9 @@ def generate_group_summary(records: dict[str, dict], summary_type: SummaryType) 
     record_list = list(records.values())
     record_list.sort(key=lambda x: len(x["question_records"]), reverse=True)
 
-    summary = "<b>Questions completed {}:</b>\n".format(summary_type.value)
+    summary = f"<b>Questions completed {summary_type.value}:</b>\n"
     for record in record_list:
+        # Using .format for readability
         summary += "{}: {}/{} completed\n".format(
             record["full_name"],
             len(record["question_records"]),
@@ -91,14 +94,17 @@ def generate_detailed_group_summary(
     record_list = list(records.values())
     record_list.sort(key=lambda x: len(x["question_records"]), reverse=True)
 
-    summary = "<b>Questions completed {}:</b>\n".format(summary_type.value)
+    summary = f"<b>Questions completed {summary_type.value}:</b>\n"
     for record in record_list:
+        # Using .format for readability
         summary += "{}: {}/{} completed\n".format(
             record["full_name"],
             len(record["question_records"]),
             APP_CONFIG["WEEKLY_TARGET"],
         )
+
         for i, question_record in enumerate(record["question_records"]):
+            # Using .format for readability
             summary += "{}. {} [{}] [{}]\n".format(
                 i + 1,
                 question_record["question_name"],

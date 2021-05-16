@@ -10,12 +10,12 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
     if not users:
         return "There are no members in this chat!\nPlease add yourself with the /add_me command."
 
-    message = "<b>Members in {}:</b>\n".format(chat["title"])
+    message = f"<b>Members in {chat['title']}:</b>\n"
     users.sort(key=lambda x: str(x["full_name"]).lower())
     for user in users:
-        message += "{}\n".format(user["full_name"])
+        message += f"{user['full_name']}\n"
 
-    message += "\nNumber of members: {}".format(len(users))
+    message += f"\nNumber of members: {len(users)}"
 
     message += (
         "\nIf you're not in the list, please add yourself with the /add_me command."
@@ -81,7 +81,7 @@ def new_chat_member_handler(update: Update, _: CallbackContext) -> None:
             user_id=user_dict["id"], chat_id=chat_dict["id"]
         )
         SERVICES.logger.info(
-            "Added {} to chat {}".format(user_dict["full_name"], chat_dict["title"])
+            f"Added {user_dict['full_name']} to chat {chat_dict['title']}"
         )
 
 
@@ -104,7 +104,7 @@ def left_chat_member_handler(update: Update, _: CallbackContext) -> None:
             user_id=user_dict["id"], chat_id=chat_dict["id"]
         )
         SERVICES.logger.info(
-            "Removed {} from chat {}".format(user_dict["full_name"], chat_dict["title"])
+            f"Removed {user_dict['full_name']} from chat {chat_dict['title']}"
         )
     except ResourceNotFoundException:
         # User did not exist in the group. Fail silently.
@@ -122,7 +122,7 @@ def migrate_chat_handler(update: Update, _: CallbackContext) -> None:
     chat_dict = SERVICES.chat_service.migrate_chat_telegram_id(
         old_telegram_id=str(old_chat_id), new_telegram_id=str(new_chat_id)
     )
-    SERVICES.logger.info("Migrated {}".format(chat_dict["title"]))
+    SERVICES.logger.info(f"Migrated {chat_dict['title']}")
 
 
 def chat_members(update: Update, _: CallbackContext) -> None:
@@ -168,7 +168,7 @@ def add_me(update: Update, _: CallbackContext) -> None:
             user_id=user_dict["id"], chat_id=chat_dict["id"]
         )
         SERVICES.logger.info(
-            "Added {} to chat {}".format(user_dict["full_name"], chat_dict["title"])
+            f"Added {user_dict['full_name']} to chat {chat_dict['title']}"
         )
         message = "Added you to this chat group!\n\n"
 
