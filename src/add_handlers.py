@@ -111,7 +111,7 @@ def confirm(update: Update, context: CallbackContext) -> int:
     assert platform in PLATFORMS
     if platform not in url:
         update.message.reply_text(
-            "Are you sure this is a link for the platform you stated?"
+            "Are you sure this is a link for the platform you stated? "
             "Please send the url again!\n"
             "Or send /cancel to cancel."
         )
