@@ -1,3 +1,5 @@
+from re import match
+
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -16,6 +18,7 @@ from telegram.ext import (
 
 from src.config import APP_CONFIG
 from src.exceptions import InvalidUserDataException
+from src.schemata import HACKERRANK_REGEX, LEETCODE_REGEX
 from src.services import SERVICES
 from src.stats_handlers import SummaryType, generate_individual_summary
 from src.utils import unwrap
@@ -111,7 +114,17 @@ def confirm(update: Update, context: CallbackContext) -> int:
     assert platform in PLATFORMS
     if platform not in url:
         update.message.reply_text(
-            "Are you sure this is a link for the platform you stated? "
+            "Are you sure this is a link for the platform you stated?\n"
+            "Please send the url again!\n"
+            "Or send /cancel to cancel."
+        )
+        return CONFIRM
+
+    is_leetcode = platform == "leetcode"
+    regex = LEETCODE_REGEX if is_leetcode else HACKERRANK_REGEX
+    if not bool(match(regex, url)):
+        update.message.reply_text(
+            "Are you sure this is a valid link for a problem?\n"
             "Please send the url again!\n"
             "Or send /cancel to cancel."
         )
@@ -120,7 +133,6 @@ def confirm(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(
         "This part may take a while to load.\n" "Do be patient with me!"
     )
-    is_leetcode = platform == "leetcode"
 
     question_info = SERVICES.question_info_service.get_question_info(
         url=url, is_leetcode=is_leetcode
@@ -143,7 +155,7 @@ def confirm(update: Update, context: CallbackContext) -> int:
 
     if question_info.difficulty is None:
         update.message.reply_text(
-            "I tried my best to get the question title from the website directly!\n"
+            "I tried my best to get the question title either from the website or from the URL you gave!\n"
             f"Is your question title: {question_info.name}?",
             reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
         )
