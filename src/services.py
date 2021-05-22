@@ -395,7 +395,8 @@ class QuestionInfoService:
 
     @validate_input({"url": QUESTION_URL_RULE, "is_leetcode": {"type": "boolean"}})
     def get_question_info(self, url: str, is_leetcode: bool) -> QuestionInfo:
-        self.driver.get(url)
+        fetch_url = self.__get_fetch_url(url=url)
+        self.driver.get(fetch_url)
         sleep(0.5)
         page_name = str(self.driver.title)
 
@@ -407,6 +408,14 @@ class QuestionInfoService:
         difficulty = self.__get_difficulty(is_leetcode)
 
         return QuestionInfo(question_name, difficulty)
+
+    @validate_input({"url": QUESTION_URL_RULE})
+    def __get_fetch_url(self, url: str) -> str:
+        url_split = url.split(".com/")
+        path_split = url_split[1].split("/")
+        path = path_split[0] + "/" + path_split[1]
+        fetch_url = url_split[0] + ".com/" + path
+        return fetch_url
 
     def __is_invalid_page_name(self, page_name: str) -> bool:
         if not page_name:
