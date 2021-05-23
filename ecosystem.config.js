@@ -9,7 +9,6 @@ module.exports = {
       env: {
         PYTHONPATH: ".",
       },
-      log_date_format: "YYYY-MM-DD HH:mm Z",
     },
   ],
 };
