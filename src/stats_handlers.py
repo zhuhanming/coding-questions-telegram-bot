@@ -16,7 +16,9 @@ from src.utils import (
 # Summary Generators
 
 
-def generate_individual_summary(records: list[dict], summary_type: SummaryType) -> str:
+def generate_individual_summary(
+    records: list[dict], summary_type: SummaryType, is_last_week: bool = False
+) -> str:
     if not records:
         return "You have not completed any questions!"
     strftime_format = MONTH_ALL_SUMMARY_STRFTIME_FORMAT
@@ -31,7 +33,9 @@ def generate_individual_summary(records: list[dict], summary_type: SummaryType) 
             )
         )
 
-    summary = f"<b>Questions you have completed {summary_type.value}:</b>\n"
+    summary = (
+        f"<b>Questions you have completed {summary_type.format(is_last_week)}:</b>\n"
+    )
     for i, record in enumerate(records):
         if summary_type == SummaryType.ALL_UNIQUE:
             # Using .format for readability
@@ -61,13 +65,15 @@ def generate_individual_summary(records: list[dict], summary_type: SummaryType) 
     return summary
 
 
-def generate_group_summary(records: dict[str, dict], summary_type: SummaryType) -> str:
+def generate_group_summary(
+    records: dict[str, dict], summary_type: SummaryType, is_last_week: bool = False
+) -> str:
     if not records:
         return "This group has no members! Add yourself using /add_me now."
     record_list = list(records.values())
     record_list.sort(key=lambda x: len(x["question_records"]), reverse=True)
 
-    summary = f"<b>Questions completed {summary_type.value}:</b>\n"
+    summary = f"<b>Questions completed {summary_type.format(is_last_week)}:</b>\n"
     for record in record_list:
         # Using .format for readability
         summary += "{}: {}/{} completed\n".format(
@@ -127,7 +133,7 @@ def generate_detailed_group_summary(
 
 
 def create_and_send_individual_summary(
-    update: Update, summary_type: SummaryType
+    update: Update, summary_type: SummaryType, is_last_week: bool = False
 ) -> None:
     update.message = unwrap(update.message)
     user = unwrap(update.effective_user)
@@ -136,15 +142,20 @@ def create_and_send_individual_summary(
         full_name=user.full_name, telegram_id=str(user.id)
     )
     records = SERVICES.question_record_service.get_records_by_user(
-        user_id=user_dict["id"], summary_type=summary_type
+        user_id=user_dict["id"], summary_type=summary_type, is_last_week=is_last_week
     )
 
-    summary = generate_individual_summary(records, summary_type)
+    summary = generate_individual_summary(
+        records, summary_type, is_last_week=is_last_week
+    )
     update.message.reply_html(summary)
 
 
 def create_and_send_group_summary(
-    update: Update, summary_type: SummaryType, is_detailed: bool = False
+    update: Update,
+    summary_type: SummaryType,
+    is_detailed: bool = False,
+    is_last_week: bool = False,
 ) -> None:
     update.message = unwrap(update.message)
     chat = update.message.chat
@@ -153,10 +164,11 @@ def create_and_send_group_summary(
     records = SERVICES.question_record_service.get_records_by_users(
         user_ids=[user_dict["id"] for user_dict in user_dicts],
         summary_type=summary_type,
+        is_last_week=is_last_week,
     )
 
     summary = (
-        generate_group_summary(records, summary_type)
+        generate_group_summary(records, summary_type, is_last_week=is_last_week)
         if not is_detailed
         else generate_detailed_group_summary(records, summary_type)
     )
@@ -172,6 +184,14 @@ def week(update: Update, context: CallbackContext) -> None:
         week_chat(update, context)
         return
     create_and_send_individual_summary(update, SummaryType.WEEKLY)
+
+
+def last_week(update: Update, context: CallbackContext) -> None:
+    update.message = unwrap(update.message)
+    if update.message.chat.type != "private":
+        last_week_chat(update, context)
+        return
+    create_and_send_individual_summary(update, SummaryType.WEEKLY, is_last_week=True)
 
 
 def month(update: Update, context: CallbackContext) -> None:
@@ -203,6 +223,10 @@ def all_unique(update: Update, context: CallbackContext) -> None:
 
 def week_chat(update: Update, _: CallbackContext) -> None:
     create_and_send_group_summary(update, SummaryType.WEEKLY)
+
+
+def last_week_chat(update: Update, _: CallbackContext) -> None:
+    create_and_send_group_summary(update, SummaryType.WEEKLY, is_last_week=True)
 
 
 def week_detailed(update: Update, _: CallbackContext) -> None:
