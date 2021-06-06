@@ -84,13 +84,13 @@ def generate_individual_interview_summary(records: list[dict]) -> str:
 
 
 def generate_group_interview_summary(
-    records: list[dict], extra_user: Optional[dict]
+    records: list[dict], extra_users: Optional[list[dict]]
 ) -> str:
     if not records:
-        return "This group has no members! Add yourself using /add_me now."
+        return "There are no interview pairings for the specified week."
     records.sort(key=lambda x: (x["is_completed"], x["user_one_name"].lower()))
 
-    summary = f"<b>Interview Pairings for Week of {get_start_of_week().strftime(MONTH_ALL_SUMMARY_STRFTIME_FORMAT)}:</b>\n"
+    summary = f"<b>Interview Pairings for Week of {records[0]['started_at'].strftime(MONTH_ALL_SUMMARY_STRFTIME_FORMAT)}:</b>\n"
     for record in records:
         # Using .format for readability
         summary += "{} & {} [{}]\n".format(
@@ -99,11 +99,13 @@ def generate_group_interview_summary(
             "Completed" if record["is_completed"] else "Incomplete",
         )
 
-    if extra_user is not None:
-        summary += f"\nUnpaired: {extra_user['full_name']}\n"
+    if extra_users is not None:
+        summary += "\nUnpaired:"
+        for user in extra_users:
+            summary += f"\n{user['full_name']}"
 
     if len(list(filter(lambda x: not x["is_completed"], records))) == 0:
-        summary += "\nAwesome! Everyone has completed their interviews!\n"
+        summary += "\n\nAwesome! Everyone has completed their interviews!\n"
 
     return summary
 
@@ -120,7 +122,7 @@ def interview_pairs(update: Update, _: CallbackContext) -> None:
     chat = update.message.chat
     chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
-    pairs = SERVICES.pair_service.get_current_pairs_for_chat(chat_id=chat_dict["id"])
+    pairs = SERVICES.pair_service.get_pairs_for_chat(chat_id=chat_dict["id"])
 
     paired_users = set(
         [item for pair in pairs for item in [pair["user_one_id"], pair["user_two_id"]]]
@@ -134,14 +136,41 @@ def interview_pairs(update: Update, _: CallbackContext) -> None:
         SERVICES.pair_service.add_pairs_for_chat(
             pairs=new_pairs, chat_id=chat_dict["id"]
         )
-        pairs = SERVICES.pair_service.get_current_pairs_for_chat(
-            chat_id=chat_dict["id"]
-        )
+        pairs = SERVICES.pair_service.get_pairs_for_chat(chat_id=chat_dict["id"])
 
     summary = generate_group_interview_summary(
         pairs,
-        SERVICES.user_service.get_user_by_id(id=extra_user_id)
+        [SERVICES.user_service.get_user_by_id(id=extra_user_id)]
         if extra_user_id is not None
+        else None,
+    )
+    update.message.reply_html(summary)
+
+
+def interview_pairs_last_week(update: Update, _: CallbackContext) -> None:
+    """Lists out all pairs for mock interviews last week."""
+    update.message = unwrap(update.message)
+    if update.message.chat.type == "private":
+        update.message.reply_text("Please use this command in a chat group!")
+        return
+    chat = update.message.chat
+    chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
+    user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
+    pairs = SERVICES.pair_service.get_pairs_for_chat(
+        chat_id=chat_dict["id"], is_last_week=True
+    )
+
+    paired_users = set(
+        [item for pair in pairs for item in [pair["user_one_id"], pair["user_two_id"]]]
+    )
+    unpaired_users = set([user_dict["id"] for user_dict in user_dicts]).difference(
+        paired_users
+    )
+
+    summary = generate_group_interview_summary(
+        pairs,
+        SERVICES.user_service.get_users_by_id(ids=list(unpaired_users))
+        if len(unpaired_users) > 0
         else None,
     )
     update.message.reply_html(summary)
