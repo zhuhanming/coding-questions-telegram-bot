@@ -10,10 +10,15 @@ T = TypeVar("T")
 
 
 class SummaryType(Enum):
-    WEEKLY = "this week"
-    MONTHLY = "this month"
+    WEEKLY = "week"
+    MONTHLY = "month"
     ALL = "all time"
     ALL_UNIQUE = "all time (unique)"
+
+    def format(self, is_last_week: bool = False) -> str:
+        if self.name in ["WEEKLY", "MONTHLY"]:
+            return ("last " if is_last_week else "this ") + self.value
+        return self.value
 
 
 class QuestionInfo:
@@ -55,6 +60,13 @@ def platform_to_int(platform: str) -> int:
 def get_start_of_week() -> datetime:
     now = datetime.now()
     return (now - timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+def get_start_of_last_week() -> datetime:
+    now = datetime.now()
+    return (now - timedelta(days=now.weekday() + 7)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
