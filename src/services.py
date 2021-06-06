@@ -7,6 +7,7 @@ from typing import Optional
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import or_
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -36,7 +37,13 @@ from src.schemata import (
     UUID_RULE,
     validate_input,
 )
-from src.utils import QuestionInfo, SummaryType, get_start_of_month, get_start_of_week
+from src.utils import (
+    QuestionInfo,
+    SummaryType,
+    get_start_of_last_week,
+    get_start_of_month,
+    get_start_of_week,
+)
 
 
 class UserService:
@@ -107,14 +114,20 @@ class QuestionRecordService:
 
     @validate_input(GET_QUESTION_RECORD_SCHEMA)
     def get_records_by_user(
-        self, user_id: str, summary_type: Optional[SummaryType] = None
+        self,
+        user_id: str,
+        summary_type: Optional[SummaryType] = None,
+        is_last_week: bool = False,
     ) -> list[dict]:
-        before_date = self.__get_before_date(summary_type)
+        before_date = self.__get_before_date(summary_type, is_last_week=is_last_week)
+        after_date = self.__get_after_date(summary_type) if is_last_week else None
 
         with session_scope() as session:
             query = session.query(QuestionRecord).filter_by(user_id=user_id)
             if before_date is not None:
                 query = query.filter(QuestionRecord.created_at >= before_date)
+            if after_date is not None:
+                query = query.filter(QuestionRecord.created_at < after_date)
             if summary_type == SummaryType.ALL_UNIQUE:
                 query = query.distinct(
                     QuestionRecord.question_name,
@@ -129,32 +142,37 @@ class QuestionRecordService:
 
     @validate_input(GET_QUESTION_RECORDS_SCHEMA)
     def get_records_by_users(
-        self, user_ids: list[str], summary_type: Optional[SummaryType] = None
+        self,
+        user_ids: list[str],
+        summary_type: Optional[SummaryType] = None,
+        is_last_week: bool = False,
     ) -> dict:
-        before_date = self.__get_before_date(summary_type)
+        before_date = self.__get_before_date(summary_type, is_last_week=is_last_week)
+        after_date = self.__get_after_date(summary_type) if is_last_week else None
 
         with session_scope() as session:
-            query = (
-                session.query(User, QuestionRecord)
-                .filter(User.id.in_(user_ids))
-                .outerjoin(QuestionRecord, QuestionRecord.user_id == User.id)
-            )
+            subquery = session.query(QuestionRecord)
             if before_date is not None:
-                query = query.filter(
-                    or_(
-                        QuestionRecord.created_at >= before_date,
-                        QuestionRecord.created_at.is_(None),
-                    )
-                )
+                subquery = subquery.filter(QuestionRecord.created_at >= before_date)
+            if after_date is not None:
+                subquery = subquery.filter(QuestionRecord.created_at < after_date)
+            question_alias = aliased(QuestionRecord, subquery.subquery())
+
+            query = (
+                session.query(User, question_alias)
+                .filter(User.id.in_(user_ids))
+                .outerjoin(question_alias, question_alias.user_id == User.id)
+            )
+
             if summary_type == SummaryType.ALL_UNIQUE:
                 query = query.distinct(
-                    QuestionRecord.question_name,
-                    QuestionRecord.platform,
-                    QuestionRecord.difficulty,
+                    question_alias.question_name,
+                    question_alias.platform,
+                    question_alias.difficulty,
                 )
                 user_record_pairs = query.all()
             else:
-                user_record_pairs = query.order_by(QuestionRecord.created_at).all()
+                user_record_pairs = query.order_by(question_alias.created_at).all()
 
             results: dict[str, dict] = {}
             for user, question_record in user_record_pairs:
@@ -172,12 +190,19 @@ class QuestionRecordService:
             return results
 
     def __get_before_date(
+        self, summary_type: Optional[SummaryType], is_last_week: bool = False
+    ) -> Optional[datetime]:
+        if summary_type == SummaryType.WEEKLY:
+            return get_start_of_last_week() if is_last_week else get_start_of_week()
+        elif summary_type == SummaryType.MONTHLY:
+            return get_start_of_month()
+        return None
+
+    def __get_after_date(
         self, summary_type: Optional[SummaryType]
     ) -> Optional[datetime]:
         if summary_type == SummaryType.WEEKLY:
             return get_start_of_week()
-        elif summary_type == SummaryType.MONTHLY:
-            return get_start_of_month()
         return None
 
 
