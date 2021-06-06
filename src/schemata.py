@@ -59,10 +59,15 @@ CREATE_QUESTION_RECORD_SCHEMA = {
     "question_name": {"type": "string"},
     "difficulty": {"type": "string", "allowed": ["easy", "medium", "hard"]},
 }
-GET_QUESTION_RECORD_SCHEMA = {"user_id": UUID_RULE, "summary_type": {"required": False}}
+GET_QUESTION_RECORD_SCHEMA = {
+    "user_id": UUID_RULE,
+    "summary_type": {"required": False},
+    "is_last_week": {"type": "boolean", "required": False},
+}
 GET_QUESTION_RECORDS_SCHEMA = {
     "user_ids": UUIDS_RULE,
     "summary_type": {"required": False},
+    "is_last_week": {"type": "boolean", "required": False},
 }
 
 CREATE_INTERVIEW_PAIRS_SCHEMA = {
