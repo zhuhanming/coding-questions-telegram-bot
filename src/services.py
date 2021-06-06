@@ -35,6 +35,7 @@ from src.schemata import (
     MIGRATE_CHAT_SCHEMA,
     QUESTION_URL_RULE,
     UUID_RULE,
+    UUIDS_RULE,
     validate_input,
 )
 from src.utils import (
@@ -85,6 +86,15 @@ class UserService:
                 raise ResourceNotFoundException()
             user_dict = user.asdict()
         return user_dict
+
+    @validate_input({"ids": UUIDS_RULE})
+    def get_users_by_id(self, ids: list[str]) -> list[dict]:
+        with session_scope() as session:
+            users: list[User] = session.query(User).filter(User.id.in_(ids)).all()
+            if len(users) != len(ids):
+                raise ResourceNotFoundException()
+            user_dicts = [user.asdict() for user in users]
+        return user_dicts
 
 
 class QuestionRecordService:
@@ -329,14 +339,20 @@ class InterviewPairService:
                 ]
             )
 
-    @validate_input({"chat_id": UUID_RULE})
-    def get_current_pairs_for_chat(self, chat_id: str) -> list[dict]:
-        monday = get_start_of_week()
+    @validate_input(
+        {"chat_id": UUID_RULE, "is_last_week": {"type": "boolean", "required": False}}
+    )
+    def get_pairs_for_chat(
+        self, chat_id: str, is_last_week: bool = False
+    ) -> list[dict]:
+        before_date = get_start_of_last_week() if is_last_week else get_start_of_week()
+        after_date = get_start_of_week() if is_last_week else datetime.now()
         with session_scope() as session:
             pairs = (
                 session.query(InterviewPair)
                 .filter(InterviewPair.chat_id == chat_id)
-                .filter(InterviewPair.started_at >= monday)
+                .filter(InterviewPair.started_at >= before_date)
+                .filter(InterviewPair.started_at < after_date)
                 .all()
             )
             return [pair.asdict() for pair in pairs]
