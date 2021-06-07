@@ -20,7 +20,7 @@ from telegram.ext import (
 from src.config import APP_CONFIG
 from src.exceptions import InvalidUserDataException
 from src.services import SERVICES
-from src.utils import MONTH_ALL_SUMMARY_STRFTIME_FORMAT, get_start_of_week, unwrap
+from src.utils import MONTH_ALL_SUMMARY_STRFTIME_FORMAT, unwrap
 
 SINGLE_CONFIRM, LIST_CONFIRM = range(2)
 CONFIRM_KEYBOARD = [["Yes"], ["No"]]
