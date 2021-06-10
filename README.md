@@ -82,6 +82,8 @@ Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scri
 
 `/week`: To see a summary of the questions that you have completed this week. Note that repeated questions can appear, if you chose to reattempt the same question.
 
+`/last_week`: To see a summary of the questions that you have completed last week.
+
 `/month`: To see a summary of the questions that you have completed this month.
 
 `/all`: To see a summary of all questions that you have completed (and registered with the bot).
@@ -100,6 +102,8 @@ Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scri
 
 `/week`: To see a summary of how many questions each chat group member has completed this week.
 
+`/last_week`: To see a summary of how many questions each chat group member has completed last week.
+
 `/week_detailed`: To see a detailed list of the questions that each chat group member has completed this week.
 
 `/month`: To see a summary of how many questions each chat group member has completed this month.
@@ -109,6 +113,8 @@ Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scri
 `/all_unique`: To see a summary of how many _unique_ questions each chat group member has completed (and registered with the bot). Uniqueness is determined by the name of the question, the platform the question is from, and its difficulty.
 
 `/interview_pairs`: To generate the mock interview pairs for the week. Once generated, it should not change for the rest of the week. Subsequent usage of the same command will instead show a summary of which pairs have completed their mock interviews, and which have not.
+
+`/interview_pairs_last_week`: Show a summary of last week's pairs, on which pairs have completed their mock interviews, and which have not.
 
 ### Additional Functionalities + TODO
 
