@@ -114,7 +114,9 @@ Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scri
 
 `/interview_pairs`: To generate the mock interview pairs for the week. Once generated, it should not change for the rest of the week. Subsequent usage of the same command will instead show a summary of which pairs have completed their mock interviews, and which have not.
 
-`/interview_pairs_last_week`: Show a summary of last week's pairs, on which pairs have completed their mock interviews, and which have not.
+`/interview_pairs_last_week`: To show a summary of last week's pairs, on which pairs have completed their mock interviews, and which have not.
+
+`/swap_pairs`: To swap two users. Command will work so long at least one user is currently paired, and the two users are not paired together.
 
 ### Additional Functionalities + TODO
 
