@@ -16,6 +16,7 @@ from src.pair_handlers import (
     interview_pairs,
     interview_pairs_last_week,
     past_pairs,
+    swap_conv_handler,
 )
 from src.stats_handlers import (
     all_questions,
@@ -50,6 +51,7 @@ def main() -> None:
     dispatcher.add_handler(
         CommandHandler("interview_pairs_last_week", interview_pairs_last_week)
     )
+    dispatcher.add_handler(swap_conv_handler)
 
     # General handlers
     dispatcher.add_handler(CommandHandler("cancel", cancel))

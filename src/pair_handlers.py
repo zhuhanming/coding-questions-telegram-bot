@@ -23,6 +23,7 @@ from src.services import SERVICES
 from src.utils import MONTH_ALL_SUMMARY_STRFTIME_FORMAT, unwrap
 
 SINGLE_CONFIRM, LIST_CONFIRM = range(2)
+CONFIRM_SELECTION, SWAP_COMPLETED = range(2)
 CONFIRM_KEYBOARD = [["Yes"], ["No"]]
 GET_STARTED_KEYBOARD = [
     [InlineKeyboardButton(text="Get started", url=APP_CONFIG["BOT_URL"])]
@@ -301,7 +302,7 @@ def list_confirm(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-def cancel(update: Update, context: CallbackContext) -> int:
+def cancel_complete(update: Update, context: CallbackContext) -> int:
     """Fallback that ends the conversation and clears any cached data."""
     # Unwrap and fail fast
     update.message = unwrap(update.message)
@@ -323,7 +324,7 @@ complete_conv_handler = ConversationHandler(
         SINGLE_CONFIRM: [MessageHandler(Filters.regex("^(Yes|No)$"), single_confirm)],
         LIST_CONFIRM: [MessageHandler(Filters.text & ~Filters.command, list_confirm)],
     },
-    fallbacks=[CommandHandler("cancel", cancel)],
+    fallbacks=[CommandHandler("cancel", cancel_complete)],
 )
 
 
@@ -353,3 +354,175 @@ def past_pairs(update: Update, context: CallbackContext) -> None:
 
     summary = generate_individual_interview_summary(pairs)
     update.message.reply_html(summary)
+
+
+def swap_pairs(update: Update, context: CallbackContext) -> int:
+    update.message = unwrap(update.message)
+    if update.message.chat.type == "private":
+        update.message.reply_text("Please use this command in a chat group!")
+        return ConversationHandler.END
+    if context.chat_data is None:
+        raise InvalidUserDataException()
+
+    chat = update.message.chat
+    chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
+    users = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
+    context.chat_data["USERS_FOR_SWAPPING"] = users
+
+    message = "Please reply to this message with two space-separated numbers, indicating the two people you would like to swap!\n\n"
+
+    for index, user in enumerate(users):
+        message += f"{index + 1}. {user['full_name']}\n"
+
+    update.message.reply_text(message)
+    return CONFIRM_SELECTION
+
+
+def confirm_swap_selection(update: Update, context: CallbackContext) -> int:
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    if context.chat_data is None:
+        raise InvalidUserDataException()
+
+    numbers = update.message.text.split(" ")
+    if len(numbers) != 2 or sum([1 if x.isnumeric() else 0 for x in numbers]) != 2:
+        update.message.reply_text(
+            "Please reply to this message two numbers separated by a space!\nOr /cancel to stop."
+        )
+        return CONFIRM_SELECTION
+
+    num_1, num_2 = [int(x) for x in numbers]
+    users = context.chat_data.get("USERS_FOR_SWAPPING")
+    if not 0 < num_1 <= len(users) or not 0 < num_2 <= len(users):
+        update.message.reply_text(
+            "Please reply to this message two valid numbers separated by a space!\nOr /cancel to stop."
+        )
+        return CONFIRM_SELECTION
+
+    user_1 = users[num_1 - 1]
+    user_2 = users[num_2 - 1]
+    pair_list_1 = SERVICES.pair_service.get_pairs_for_user(
+        user_id=user_1["id"], is_current=True
+    )
+    pair_1 = None if len(pair_list_1) == 0 else pair_list_1[0]
+    pair_list_2 = SERVICES.pair_service.get_pairs_for_user(
+        user_id=user_2["id"], is_current=True
+    )
+    pair_2 = None if len(pair_list_2) == 0 else pair_list_2[0]
+
+    if pair_1 is None and pair_2 is None:
+        update.message.reply_text(
+            "Both of these users are not paired! Please use the /interview_pairs command to pair users up."
+        )
+        context.chat_data.clear()
+        return ConversationHandler.END
+    if pair_1 is not None and pair_2 is not None and pair_1["id"] == pair_2["id"]:
+        update.message.reply_text(
+            "These two users are already paired. Please send /swap_pairs again if you wish to swap other users."
+        )
+        context.chat_data.clear()
+        return ConversationHandler.END
+    if pair_1 is not None and pair_2 is not None:
+        message = "After the swap, the new pairs will be:\n"
+        message += f"{pair_1['self_name']} & {pair_2['partner_name']}\n"
+        message += f"{pair_2['self_name']} & {pair_1['partner_name']}\n"
+    elif pair_1 is None:
+        assert pair_2 is not None
+        message = "After the swap, the new pair will be:\n"
+        message += f"{user_1['full_name']} & {pair_2['partner_name']}\n"
+        message += f"{user_2['full_name']} (Unpaired)\n"
+    else:
+        assert pair_1 is not None
+        assert pair_2 is None
+        message = "After the swap, the new pair will be:\n"
+        message += f"{user_2['full_name']} & {pair_1['partner_name']}\n"
+        message += f"{user_1['full_name']} (Unpaired)\n"
+
+    context.chat_data["SWAP_DATA"] = (
+        (user_1["id"], pair_1["id"] if pair_1 is not None else None),
+        (user_2["id"], pair_2["id"] if pair_2 is not None else None),
+    )  # ((user_one_id, pair_one_id), (user_two_id, pair_two_id))
+    message += "\nIs this ok?"
+    update.message.reply_text(
+        message,
+        reply_markup=ReplyKeyboardMarkup(CONFIRM_KEYBOARD, one_time_keyboard=True),
+    )
+    return SWAP_COMPLETED
+
+
+def swap_completed(update: Update, context: CallbackContext) -> int:
+    update.message = unwrap(update.message)
+    update.message.text = unwrap(update.message.text)
+    if context.chat_data is None:
+        raise InvalidUserDataException()
+
+    confirmation = update.message.text.lower()
+
+    if confirmation == "no":
+        update.message.reply_text(
+            "Ok, no worries. The swap has been cancelled.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        context.chat_data.clear()
+        return ConversationHandler.END
+
+    swap_data = context.chat_data["SWAP_DATA"]
+    user_one_id, pair_one_id = swap_data[0]
+    user_two_id, pair_two_id = swap_data[1]
+    SERVICES.pair_service.swap_pairs_for_users(
+        user_one_id=user_one_id,
+        user_two_id=user_two_id,
+        pair_one_id=pair_one_id,
+        pair_two_id=pair_two_id,
+    )
+
+    message = "Swap has been done!\n\n"
+
+    chat = update.message.chat
+    chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
+    user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
+    pairs = SERVICES.pair_service.get_pairs_for_chat(chat_id=chat_dict["id"])
+    paired_users = set(
+        [item for pair in pairs for item in [pair["user_one_id"], pair["user_two_id"]]]
+    )
+    unpaired_users = set([user_dict["id"] for user_dict in user_dicts]).difference(
+        paired_users
+    )
+
+    message += generate_group_interview_summary(
+        pairs,
+        SERVICES.user_service.get_users_by_id(ids=list(unpaired_users))
+        if len(unpaired_users) > 0
+        else None,
+    )
+    update.message.reply_html(message)
+    context.chat_data.clear()
+    return ConversationHandler.END
+
+
+def cancel_swap(update: Update, context: CallbackContext) -> int:
+    """Fallback that ends the conversation and clears any cached data."""
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    if context.user_data is None:
+        raise InvalidUserDataException()
+
+    update.message.reply_text(
+        "The swap has been cancelled.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+    context.user_data.clear()
+    return ConversationHandler.END
+
+
+swap_conv_handler = ConversationHandler(
+    entry_points=[CommandHandler("swap_pairs", swap_pairs)],
+    states={
+        CONFIRM_SELECTION: [
+            MessageHandler(Filters.regex("^\d+ \d+$"), confirm_swap_selection)
+        ],
+        SWAP_COMPLETED: [MessageHandler(Filters.regex("^(Yes|No)$"), swap_completed)],
+    },
+    fallbacks=[CommandHandler("cancel", cancel_swap)],
+)
