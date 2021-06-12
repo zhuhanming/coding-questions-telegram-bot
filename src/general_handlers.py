@@ -3,7 +3,13 @@ import json
 import traceback
 from typing import cast
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ParseMode,
+    ReplyKeyboardRemove,
+    Update,
+)
 from telegram.ext import CallbackContext
 
 from src.config import APP_CONFIG
@@ -35,7 +41,10 @@ def start(update: Update, _: CallbackContext) -> None:
 def cancel(update: Update, _: CallbackContext) -> None:
     # Unwrap and fail fast
     update.message = unwrap(update.message)
-    update.message.reply_text("You have no ongoing operation to cancel.")
+    update.message.reply_text(
+        "You have no ongoing operation to cancel.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
 
 def unknown_message(update: Update, _: CallbackContext) -> None:
