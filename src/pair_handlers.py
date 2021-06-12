@@ -495,7 +495,10 @@ def swap_completed(update: Update, context: CallbackContext) -> int:
         if len(unpaired_users) > 0
         else None,
     )
-    update.message.reply_html(message)
+    update.message.reply_html(
+        message,
+        reply_markup=ReplyKeyboardRemove(),
+    )
     context.chat_data.clear()
     return ConversationHandler.END
 
