@@ -34,6 +34,7 @@ from src.schemata import (
     GET_USER_SCHEMA,
     MIGRATE_CHAT_SCHEMA,
     QUESTION_URL_RULE,
+    SWAP_INTERVIEW_PAIRS_SCHEMA,
     UUID_RULE,
     UUIDS_RULE,
     validate_input,
@@ -419,6 +420,39 @@ class InterviewPairService:
 
             session.commit()
             return interview_pair.asdict()
+
+    @validate_input(SWAP_INTERVIEW_PAIRS_SCHEMA)
+    def swap_pairs_for_users(
+        self,
+        user_one_id: str,
+        user_two_id: str,
+        pair_one_id: Optional[str] = None,
+        pair_two_id: Optional[str] = None,
+    ) -> list[Optional[dict]]:
+        with session_scope() as session:
+            pair_one: Optional[InterviewPair] = None
+            pair_two: Optional[InterviewPair] = None
+            if pair_one_id is not None:
+                pair_one = session.query(InterviewPair).get(pair_one_id)
+                if pair_one is None:
+                    raise ResourceNotFoundException()
+                if pair_one.user_one_id == user_one_id:
+                    pair_one.user_one_id = user_two_id
+                else:
+                    pair_one.user_two_id = user_two_id
+            if pair_two_id is not None:
+                pair_two = session.query(InterviewPair).get(pair_two_id)
+                if pair_two is None:
+                    raise ResourceNotFoundException()
+                if pair_two.user_one_id == user_two_id:
+                    pair_two.user_one_id = user_one_id
+                else:
+                    pair_two.user_two_id = user_one_id
+            session.commit()
+            return [
+                pair_one.asdict() if pair_one is not None else None,
+                pair_two.asdict() if pair_two is not None else None,
+            ]
 
 
 class QuestionInfoService:

@@ -81,3 +81,9 @@ GET_INTERVIEW_PAIRS_FOR_USER_SCHEMA = {
     "user_id": UUID_RULE,
     "is_current": {"type": "boolean", "required": False},
 }
+SWAP_INTERVIEW_PAIRS_SCHEMA = {
+    "user_one_id": UUID_RULE,
+    "user_two_id": UUID_RULE,
+    "pair_one_id": {"type": "string", "nullable": True, "regex": UUID_REGEX},
+    "pair_two_id": {"type": "string", "nullable": True, "regex": UUID_REGEX},
+}
