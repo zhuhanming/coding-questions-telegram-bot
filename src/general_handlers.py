@@ -35,7 +35,9 @@ def start(update: Update, _: CallbackContext) -> None:
         return
 
     SERVICES.logger.info(f"User started: {user.full_name}")
-    update.message.reply_text(f"Hello {user.full_name}!")
+    update.message.reply_text(
+        f"Hello {user.full_name}!", reply_markup=ReplyKeyboardRemove()
+    )
 
 
 def cancel(update: Update, _: CallbackContext) -> None:
@@ -52,7 +54,10 @@ def unknown_message(update: Update, _: CallbackContext) -> None:
     # Unwrap and fail fast
     update.message = unwrap(update.message)
 
-    update.message.reply_text("Unfortunately, I don't recognise this command!")
+    update.message.reply_text(
+        "Unfortunately, I don't recognise this command!",
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
 
 def error_handler(update: object, context: CallbackContext) -> None:
@@ -102,5 +107,6 @@ def error_handler(update: object, context: CallbackContext) -> None:
         return
 
     casted_update.message.reply_text(
-        "Uh oh, something went wrong! I've already informed my developer about this."
+        "Uh oh, something went wrong! I've already informed my developer about this.",
+        reply_markup=ReplyKeyboardRemove(),
     )
