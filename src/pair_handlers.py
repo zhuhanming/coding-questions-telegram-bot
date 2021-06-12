@@ -422,6 +422,14 @@ def confirm_swap_selection(update: Update, context: CallbackContext) -> int:
         )
         context.chat_data.clear()
         return ConversationHandler.END
+    if (pair_1 is not None and pair_1["is_completed"]) or (
+        pair_2 is not None and pair_2["is_completed"]
+    ):
+        update.message.reply_text(
+            "At least one of these two users has already completed their interview. You won't be able to swap them."
+        )
+        context.chat_data.clear()
+        return ConversationHandler.END
     if pair_1 is not None and pair_2 is not None:
         message = "After the swap, the new pairs will be:\n"
         message += f"{pair_1['self_name']} & {pair_2['partner_name']}\n"
