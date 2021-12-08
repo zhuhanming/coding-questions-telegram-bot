@@ -115,6 +115,7 @@ class Belong(Base):
         ForeignKey("chats.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
+    is_opted_out = Column(Boolean, nullable=False, server_default="f")
 
     chat = relationship(
         "Chat", back_populates="belongs_in_chat", foreign_keys=[chat_id]
