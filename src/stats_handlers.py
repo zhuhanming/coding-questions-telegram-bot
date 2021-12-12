@@ -234,6 +234,8 @@ def week_chat(update: Update, _: CallbackContext) -> None:
     create_and_send_group_summary(update, SummaryType.WEEKLY)
 
 
+# TODO: Look into tracking when the opting out started, since once a user has
+# opted out, all past records will be filtered out.
 def last_week_chat(update: Update, _: CallbackContext) -> None:
     create_and_send_group_summary(update, SummaryType.WEEKLY, is_last_week=True)
 
