@@ -302,8 +302,8 @@ class BelongService:
     def get_users_in_chat(self, chat_id: str) -> list[dict]:
         with session_scope() as session:
             users = [
-                u.asdict()
-                for u in session.query(User)
+                {**u.asdict(), "is_opted_out": b.is_opted_out}
+                for (u, b) in session.query(User, Belong)
                 .join(Belong, Belong.user_id == User.id)
                 .filter(Belong.chat_id == chat_id)
                 .all()
@@ -320,8 +320,8 @@ class BelongService:
             )
             return belong is not None
 
-    @validate_input(OPT_IN_OUT_SCHEMA)
-    def opt_in_out(self, user_id: str, chat_id: str, is_opted_out: bool) -> dict:
+    @validate_input(BELONG_SCHEMA)
+    def is_user_opted_out(self, user_id: str, chat_id: str) -> bool:
         with session_scope() as session:
             belong: Optional[Belong] = (
                 session.query(Belong)
@@ -330,7 +330,19 @@ class BelongService:
             )
             if belong is None:
                 raise ResourceNotFoundException()
-            belong.is_opted_out = is_opted_out
+            return belong.is_opted_out
+
+    @validate_input(OPT_IN_OUT_SCHEMA)
+    def opt_in_out(self, user_id: str, chat_id: str, should_opt_out: bool) -> dict:
+        with session_scope() as session:
+            belong: Optional[Belong] = (
+                session.query(Belong)
+                .filter_by(user_id=user_id, chat_id=chat_id)
+                .one_or_none()
+            )
+            if belong is None:
+                raise ResourceNotFoundException()
+            belong.is_opted_out = should_opt_out
             session.commit()
             return belong.asdict()
 

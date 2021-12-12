@@ -13,9 +13,12 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
     message = f"<b>Members in {chat['title']}:</b>\n"
     users.sort(key=lambda x: str(x["full_name"]).lower())
     for user in users:
-        message += f"{user['full_name']}\n"
+        message += (
+            f"{user['full_name']}{' (Opted Out)' if user['is_opted_out'] else ''}\n"
+        )
 
-    message += f"\nNumber of members: {len(users)}"
+    message += f"\nNumber of Opted In Members: {sum(1 for u in users if not u['is_opted_out'])}"
+    message += f"\nTotal Number of Members: {len(users)}"
 
     message += (
         "\nIf you're not in the list, please add yourself with the /add_me command."
@@ -175,3 +178,62 @@ def add_me(update: Update, _: CallbackContext) -> None:
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
     message += generate_user_list(chat_dict, user_dicts)
     update.message.reply_html(message)
+
+
+def opt_in_out_helper(update: Update, should_opt_out: bool) -> None:
+    # Unwrap and fail fast
+    update.message = unwrap(update.message)
+    user = unwrap(update.effective_user)
+
+    chat = update.message.chat
+    if chat.type == "private":
+        update.message.reply_text("Please use this command in a chat group!")
+        return
+
+    chat_dict = SERVICES.chat_service.create_if_not_exists(
+        title=chat.title, telegram_id=str(chat.id)
+    )
+    user_dict = SERVICES.user_service.create_if_not_exists(
+        full_name=user.full_name, telegram_id=str(user.id)
+    )
+
+    message = ""
+    is_opted_out = SERVICES.belong_service.is_user_opted_out(
+        user_id=user_dict["id"], chat_id=chat_dict["id"]
+    )
+
+    if is_opted_out and should_opt_out:
+        message = "You have already opted out for this chat group!\n\n"
+    elif not is_opted_out and not should_opt_out:
+        message = "You have already opted in for this chat group!\n\n"
+    else:
+        SERVICES.belong_service.opt_in_out(
+            user_id=user_dict["id"],
+            chat_id=chat_dict["id"],
+            should_opt_out=should_opt_out,
+        )
+        SERVICES.logger.info(
+            f"{user_dict['full_name']} has opted {'out' if should_opt_out else 'in'} for chat {chat_dict['title']}"
+        )
+        message = f"You have opted {'out' if should_opt_out else 'in'} for this chat group!\n"
+        if should_opt_out:
+            pair_list = SERVICES.pair_service.get_pairs_for_user(
+               user_id=user_dict["id"], is_current=True
+            )
+            chat_pair_list = [pair for pair in pair_list if pair["chat_id"] == chat_dict["id"]]
+            if chat_pair_list and not chat_pair_list[0]["is_completed"]:
+                message += "Note that you will still need to complete your ongoing interview for this week.\n\n"
+            else:
+                message += "\n"
+
+    user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
+    message += generate_user_list(chat_dict, user_dicts)
+    update.message.reply_html(message)
+
+
+def opt_in(update: Update, _: CallbackContext) -> None:
+    opt_in_out_helper(update=update, should_opt_out=False)
+
+
+def opt_out(update: Update, _: CallbackContext) -> None:
+    opt_in_out_helper(update=update, should_opt_out=True)

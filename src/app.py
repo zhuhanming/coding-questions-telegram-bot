@@ -8,6 +8,8 @@ from src.chat_handlers import (
     left_chat_member_handler,
     migrate_chat_handler,
     new_chat_member_handler,
+    opt_in,
+    opt_out,
 )
 from src.config import APP_CONFIG
 from src.general_handlers import cancel, error_handler, start, unknown_message
@@ -52,6 +54,8 @@ def main() -> None:
         CommandHandler("interview_pairs_last_week", interview_pairs_last_week)
     )
     dispatcher.add_handler(swap_conv_handler)
+    dispatcher.add_handler(CommandHandler("opt_in", opt_in))
+    dispatcher.add_handler(CommandHandler("opt_out", opt_out))
 
     # General handlers
     dispatcher.add_handler(CommandHandler("cancel", cancel))

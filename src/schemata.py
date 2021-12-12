@@ -55,7 +55,7 @@ BELONG_SCHEMA = {"user_id": UUID_RULE, "chat_id": UUID_RULE}
 OPT_IN_OUT_SCHEMA = {
     "user_id": UUID_RULE,
     "chat_id": UUID_RULE,
-    "is_last_week": {"type": "boolean", "required": True},
+    "should_opt_out": {"type": "boolean", "required": True},
 }
 
 CREATE_QUESTION_RECORD_SCHEMA = {
