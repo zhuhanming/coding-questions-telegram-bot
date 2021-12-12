@@ -161,11 +161,20 @@ def create_and_send_group_summary(
     chat = update.message.chat
     chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
+    if not user_dicts:
+        update.message.reply_html("This group has no members! Add yourself using /add_me now.")
+        return
+
     records = SERVICES.question_record_service.get_records_by_users(
-        user_ids=[user_dict["id"] for user_dict in user_dicts],
+        # Filter out opted out members
+        user_ids=[user_dict["id"] for user_dict in user_dicts if not user_dict["is_opted_out"]],
         summary_type=summary_type,
         is_last_week=is_last_week,
     )
+
+    if not records:
+        update.message.reply_html("All members in this group have opted out! Opt yourself in using /opt_in now.")
+        return
 
     summary = (
         generate_group_summary(records, summary_type, is_last_week=is_last_week)
