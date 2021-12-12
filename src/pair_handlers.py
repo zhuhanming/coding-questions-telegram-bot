@@ -399,15 +399,22 @@ def confirm_swap_selection(update: Update, context: CallbackContext) -> int:
         )
         return CONFIRM_SELECTION
 
+    chat = update.message.chat
+    chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
+
     user_1 = users[num_1 - 1]
     user_2 = users[num_2 - 1]
+
     pair_list_1 = SERVICES.pair_service.get_pairs_for_user(
         user_id=user_1["id"], is_current=True
     )
+    pair_list_1 = [pair for pair in pair_list_1 if pair["chat_id"] == chat_dict["id"]]
     pair_1 = None if len(pair_list_1) == 0 else pair_list_1[0]
+
     pair_list_2 = SERVICES.pair_service.get_pairs_for_user(
         user_id=user_2["id"], is_current=True
     )
+    pair_list_2 = [pair for pair in pair_list_2 if pair["chat_id"] == chat_dict["id"]]
     pair_2 = None if len(pair_list_2) == 0 else pair_list_2[0]
 
     if pair_1 is None and pair_2 is None:
