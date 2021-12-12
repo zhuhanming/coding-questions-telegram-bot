@@ -128,7 +128,7 @@ def interview_pairs(update: Update, _: CallbackContext) -> None:
     paired_users = set(
         [item for pair in pairs for item in [pair["user_one_id"], pair["user_two_id"]]]
     )
-    new_users = set([user_dict["id"] for user_dict in user_dicts]).difference(
+    new_users = set([user_dict["id"] for user_dict in user_dicts if not user_dict["is_opted_out"]]).difference(
         paired_users
     )
 
