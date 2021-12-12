@@ -33,6 +33,7 @@ from src.schemata import (
     GET_QUESTION_RECORDS_SCHEMA,
     GET_USER_SCHEMA,
     MIGRATE_CHAT_SCHEMA,
+    OPT_IN_OUT_SCHEMA,
     QUESTION_URL_RULE,
     SWAP_INTERVIEW_PAIRS_SCHEMA,
     UUID_RULE,
@@ -318,6 +319,20 @@ class BelongService:
                 .one_or_none()
             )
             return belong is not None
+
+    @validate_input(OPT_IN_OUT_SCHEMA)
+    def opt_in_out(self, user_id: str, chat_id: str, is_opted_out: bool) -> dict:
+        with session_scope() as session:
+            belong: Optional[Belong] = (
+                session.query(Belong)
+                .filter_by(user_id=user_id, chat_id=chat_id)
+                .one_or_none()
+            )
+            if belong is None:
+                raise ResourceNotFoundException()
+            belong.is_opted_out = is_opted_out
+            session.commit()
+            return belong.asdict()
 
 
 class InterviewPairService:
