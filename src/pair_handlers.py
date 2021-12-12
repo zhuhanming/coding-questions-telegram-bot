@@ -132,6 +132,13 @@ def interview_pairs(update: Update, _: CallbackContext) -> None:
         paired_users
     )
 
+    if not paired_users and not new_users:
+        update.message.reply_text("Seems like there are no users in this chat group, or everyone has opted out.")
+        return
+    if not paired_users and len(new_users) == 1:
+        update.message.reply_text("Only a single user has opted in for this chat group! No pairing can be done.")
+        return
+
     new_pairs, extra_user_id = pair_users(new_users)
     if new_pairs:
         SERVICES.pair_service.add_pairs_for_chat(
