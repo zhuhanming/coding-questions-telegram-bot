@@ -215,12 +215,16 @@ def opt_in_out_helper(update: Update, should_opt_out: bool) -> None:
         SERVICES.logger.info(
             f"{user_dict['full_name']} has opted {'out' if should_opt_out else 'in'} for chat {chat_dict['title']}"
         )
-        message = f"You have opted {'out' if should_opt_out else 'in'} for this chat group!\n"
+        message = (
+            f"You have opted {'out' if should_opt_out else 'in'} for this chat group!\n"
+        )
         if should_opt_out:
             pair_list = SERVICES.pair_service.get_pairs_for_user(
-               user_id=user_dict["id"], is_current=True
+                user_id=user_dict["id"], is_current=True
             )
-            chat_pair_list = [pair for pair in pair_list if pair["chat_id"] == chat_dict["id"]]
+            chat_pair_list = [
+                pair for pair in pair_list if pair["chat_id"] == chat_dict["id"]
+            ]
             if chat_pair_list and not chat_pair_list[0]["is_completed"]:
                 message += "Note that you will still need to complete your ongoing interview for this week.\n\n"
             else:
