@@ -118,6 +118,10 @@ Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scri
 
 `/swap_pairs`: To swap two users. Command will work so long at least one user is currently paired, and the two users are not paired together.
 
+`/opt_out`: Opts you out of interview pairing and weekly question tracking within this chat group.
+
+`/opt_in`: Reverse of `/opt_out`.
+
 ### Additional Functionalities + TODO
 
 Weekly reminders: **WIP**. To routinely remind members to do their questions and mock interviews, e.g. one day before the week ends.
