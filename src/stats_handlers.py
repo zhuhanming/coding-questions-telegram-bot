@@ -10,6 +10,7 @@ from src.utils import (
     difficulty_to_int,
     format_platform_name,
     platform_to_int,
+    reply_html,
     unwrap,
 )
 
@@ -148,7 +149,7 @@ def create_and_send_individual_summary(
     summary = generate_individual_summary(
         records, summary_type, is_last_week=is_last_week
     )
-    update.message.reply_html(summary)
+    reply_html(update, summary)
 
 
 def create_and_send_group_summary(
@@ -187,7 +188,7 @@ def create_and_send_group_summary(
         if not is_detailed
         else generate_detailed_group_summary(records, summary_type)
     )
-    update.message.reply_html(summary)
+    reply_html(update, summary)
 
 
 # Individual Handlers

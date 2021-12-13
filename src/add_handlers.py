@@ -21,7 +21,7 @@ from src.exceptions import InvalidUserDataException
 from src.schemata import HACKERRANK_REGEX, LEETCODE_REGEX
 from src.services import SERVICES
 from src.stats_handlers import SummaryType, generate_individual_summary
-from src.utils import unwrap
+from src.utils import reply_html, unwrap
 
 URL, CONFIRM, MANUAL_NAME, MANUAL_DIFFICULTY_PRE, MANUAL_DIFFICULTY, THANKS = range(6)
 PLATFORMS = ["leetcode", "hackerrank"]
@@ -289,7 +289,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
     )
 
     summary = generate_individual_summary(records, SummaryType.WEEKLY)
-    update.message.reply_html(summary)
+    reply_html(update, summary)
     return ConversationHandler.END
 
 

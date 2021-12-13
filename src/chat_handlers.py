@@ -3,7 +3,7 @@ from telegram.ext import CallbackContext
 
 from src.exceptions import ResourceNotFoundException
 from src.services import SERVICES
-from src.utils import unwrap
+from src.utils import reply_html, unwrap
 
 
 def generate_user_list(chat: dict, users: list[dict]) -> str:
@@ -140,7 +140,7 @@ def chat_members(update: Update, _: CallbackContext) -> None:
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
 
     message = generate_user_list(chat_dict, user_dicts)
-    update.message.reply_html(message)
+    reply_html(update, message)
 
 
 def add_me(update: Update, _: CallbackContext) -> None:
@@ -177,7 +177,7 @@ def add_me(update: Update, _: CallbackContext) -> None:
 
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
     message += generate_user_list(chat_dict, user_dicts)
-    update.message.reply_html(message)
+    reply_html(update, message)
 
 
 def opt_in_out_helper(update: Update, should_opt_out: bool) -> None:
@@ -229,10 +229,12 @@ def opt_in_out_helper(update: Update, should_opt_out: bool) -> None:
                 message += "Note that you will still need to complete your ongoing interview for this week.\n\n"
             else:
                 message += "\n"
+        else:
+            message += "\n"
 
     user_dicts = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
     message += generate_user_list(chat_dict, user_dicts)
-    update.message.reply_html(message)
+    reply_html(update, message)
 
 
 def opt_in(update: Update, _: CallbackContext) -> None:

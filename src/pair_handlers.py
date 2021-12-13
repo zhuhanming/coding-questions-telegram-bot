@@ -20,7 +20,7 @@ from telegram.ext import (
 from src.config import APP_CONFIG
 from src.exceptions import InvalidUserDataException
 from src.services import SERVICES
-from src.utils import MONTH_ALL_SUMMARY_STRFTIME_FORMAT, unwrap
+from src.utils import MONTH_ALL_SUMMARY_STRFTIME_FORMAT, reply_html, unwrap
 
 SINGLE_CONFIRM, LIST_CONFIRM = range(2)
 CONFIRM_SELECTION, SWAP_COMPLETED = range(2)
@@ -156,7 +156,7 @@ def interview_pairs(update: Update, _: CallbackContext) -> None:
         if extra_user_id is not None
         else None,
     )
-    update.message.reply_html(summary)
+    reply_html(update, summary)
 
 
 def interview_pairs_last_week(update: Update, _: CallbackContext) -> None:
@@ -185,7 +185,7 @@ def interview_pairs_last_week(update: Update, _: CallbackContext) -> None:
         if len(unpaired_users) > 0
         else None,
     )
-    update.message.reply_html(summary)
+    reply_html(update, summary)
 
 
 def complete_interview(update: Update, context: CallbackContext) -> int:
@@ -364,7 +364,7 @@ def past_pairs(update: Update, context: CallbackContext) -> None:
     )
 
     summary = generate_individual_interview_summary(pairs)
-    update.message.reply_html(summary)
+    reply_html(update, summary)
 
 
 def swap_pairs(update: Update, context: CallbackContext) -> int:
@@ -385,7 +385,7 @@ def swap_pairs(update: Update, context: CallbackContext) -> int:
     for index, user in enumerate(users):
         message += f"{index + 1}. {user['full_name']}\n"
 
-    update.message.reply_text(message)
+    reply_html(update, message)
     return CONFIRM_SELECTION
 
 
@@ -502,7 +502,7 @@ def swap_completed(update: Update, context: CallbackContext) -> int:
         pair_two_id=pair_two_id,
     )
 
-    message = "Swap has been done!\n\n"
+    update.message.reply_text("Swap has been done!", reply_markup=ReplyKeyboardRemove())
 
     chat = update.message.chat
     chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
@@ -515,16 +515,13 @@ def swap_completed(update: Update, context: CallbackContext) -> int:
         paired_users
     )
 
-    message += generate_group_interview_summary(
+    summary = generate_group_interview_summary(
         pairs,
         SERVICES.user_service.get_users_by_id(ids=list(unpaired_users))
         if len(unpaired_users) > 0
         else None,
     )
-    update.message.reply_html(
-        message,
-        reply_markup=ReplyKeyboardRemove(),
-    )
+    reply_html(update, summary)
     context.chat_data.clear()
     return ConversationHandler.END
 
