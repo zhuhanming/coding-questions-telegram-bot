@@ -12,7 +12,7 @@ def generate_user_list(chat: dict, users: list[dict]) -> str:
 
     message = f"<b>Members in {chat['title']}:</b>\n"
     users.sort(key=lambda x: str(x["full_name"]).lower())
-    users.sort(key=lambda x: x["is_opted_out"])
+    users.sort(key=lambda x: bool(x["is_opted_out"]))
     for user in users:
         message += (
             f"{user['full_name']}{' (Opted Out)' if user['is_opted_out'] else ''}\n"
