@@ -23,9 +23,7 @@ from src.services import SERVICES
 from src.stats_handlers import SummaryType, generate_individual_summary
 from src.utils import reply_html, unwrap
 
-URL, CONFIRM, MANUAL_NAME, MANUAL_DIFFICULTY_PRE, MANUAL_DIFFICULTY, THANKS = range(6)
-PLATFORMS = ["leetcode", "hackerrank"]
-ADD_KEYBOARD = [["LeetCode"], ["HackerRank"], ["Other"]]
+FETCH, MANUAL_NAME, MANUAL_DIFFICULTY_PRE, MANUAL_DIFFICULTY, THANKS = range(5)
 DIFFICULTY_KEYBOARD = [["Easy"], ["Medium"], ["Hard"]]
 CONFIRM_KEYBOARD = [["Yes"], ["No"]]
 GET_STARTED_KEYBOARD = [
@@ -33,8 +31,16 @@ GET_STARTED_KEYBOARD = [
 ]
 
 
+"""
+Flow for add question:
+- Ask for URL.
+- Try to identify the platform. If identifiable, fetch the question details.
+- Otherwise, ask for the platform, question title, difficulty level.
+- Confirm one more time before adding question.
+"""
+
 def add(update: Update, context: CallbackContext) -> int:
-    """Kicks off the question adding process and asks user for the platform used."""
+    """Kicks off the question adding process and asks user for the question URL."""
     # Unwrap and fail fast
     user = unwrap(update.effective_user)
     update.message = unwrap(update.message)
@@ -55,81 +61,38 @@ def add(update: Update, context: CallbackContext) -> int:
 
     update.message.reply_text(
         f"Hi {user.full_name}! Glad to see that you've been working hard!\n"
-        "If you don't mind me asking, what platform did you use?\n"
+        "Can you send me the URL of the question that you attempted?\n"
         "You can also send /cancel to cancel.",
-        reply_markup=ReplyKeyboardMarkup(ADD_KEYBOARD, one_time_keyboard=True),
     )
-    return URL
+    return FETCH
 
 
-def url(update: Update, context: CallbackContext) -> int:
-    """Acknowledges the platform selected and asks for the URL from the user."""
-    # Unwrap and fail fast
-    update.message = unwrap(update.message)
-    if context.user_data is None:
-        raise InvalidUserDataException()
-
-    platform = unwrap(update.message.text).lower()
-    assert platform in PLATFORMS
-
-    context.user_data["PLATFORM"] = platform
-    update.message.reply_text(
-        "Please send me the URL of the question you just attempted!\n"
-        "You can also send /cancel to cancel.",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    return CONFIRM
-
-
-def other(update: Update, context: CallbackContext) -> int:
-    """Handles the case where the user selects Other."""
-    # Unwrap and fail fast
-    update.message = unwrap(update.message)
-    update.message.text = unwrap(update.message.text)
-    if context.user_data is None:
-        raise InvalidUserDataException()
-
-    platform = update.message.text.lower()
-    assert platform == "other"
-
-    context.user_data["PLATFORM"] = platform
-    update.message.reply_text(
-        "Do you mind letting me know what the name of the question you attempted was?",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    return MANUAL_NAME
-
-
-def confirm(update: Update, context: CallbackContext) -> int:
-    """Fetches the question title and confirms it with the user."""
-    # Unwrap and fail fast
+def try_fetch_details(update: Update, context: CallbackContext) -> int:
+    """Tries to identify the platform before fetching question details. If unidentifiable, will kickstart the process of getting details manually."""
     update.message = unwrap(update.message)
     update.message.text = unwrap(update.message.text)
     if context.user_data is None:
         raise InvalidUserDataException()
 
     url = update.message.text.lower()
-    platform = context.user_data.get("PLATFORM")
+    platform = "other"
+    if bool(match(LEETCODE_REGEX, url)):
+        platform = "leetcode"
+    elif bool(match(HACKERRANK_REGEX, url)):
+        platform = "hackerrank"
+    
+    context.user_data["PLATFORM"] = platform
 
-    assert platform in PLATFORMS
-    if platform not in url:
+    if platform == "other":
         update.message.reply_text(
-            "Are you sure this is a link for the platform you stated?\n"
-            "Please send the url again!\n"
-            "Or send /cancel to cancel."
+            "I was unable to fetch the question details from your URL.\n"
+            "Do you mind letting me know what the name of the question you attempted was?\n"
+            "You can also send /cancel to cancel.",
+            reply_markup=ReplyKeyboardRemove(),
         )
-        return CONFIRM
-
+        return MANUAL_NAME
+    
     is_leetcode = platform == "leetcode"
-    regex = LEETCODE_REGEX if is_leetcode else HACKERRANK_REGEX
-    if not bool(match(regex, url)):
-        update.message.reply_text(
-            "Are you sure this is a valid link for a problem?\n"
-            "Please send the url again!\n"
-            "Or send /cancel to cancel."
-        )
-        return CONFIRM
-
     update.message.reply_text(
         "This part may take a while to load.\n" "Do be patient with me!"
     )
@@ -250,7 +213,7 @@ def thanks(update: Update, context: CallbackContext) -> int:
 
     if confirmation == "no":
         update.message.reply_text(
-            "Sorry that I got your question title wrong!\n"
+            "Sorry that I got your question details wrong!\n"
             "Do you mind sending the name of the question here?\n"
             "Or send /cancel to cancel."
         )
@@ -311,11 +274,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
 add_conv_handler = ConversationHandler(
     entry_points=[CommandHandler("add_question", add)],
     states={
-        URL: [
-            MessageHandler(Filters.regex("^(LeetCode|HackerRank)$"), url),
-            MessageHandler(Filters.regex("^(Other)$"), other),
-        ],
-        CONFIRM: [MessageHandler(Filters.text & ~Filters.command, confirm)],
+        FETCH: [MessageHandler(Filters.text & ~Filters.command, try_fetch_details)],
         MANUAL_NAME: [MessageHandler(Filters.text & ~Filters.command, manual_name)],
         MANUAL_DIFFICULTY_PRE: [
             MessageHandler(Filters.regex("^(Yes|No)$"), manual_difficulty_pre)
