@@ -39,6 +39,7 @@ Flow for add question:
 - Confirm one more time before adding question.
 """
 
+
 def add(update: Update, context: CallbackContext) -> int:
     """Kicks off the question adding process and asks user for the question URL."""
     # Unwrap and fail fast
@@ -80,7 +81,7 @@ def try_fetch_details(update: Update, context: CallbackContext) -> int:
         platform = "leetcode"
     elif bool(match(HACKERRANK_REGEX, url)):
         platform = "hackerrank"
-    
+
     context.user_data["PLATFORM"] = platform
 
     if platform == "other":
@@ -91,7 +92,7 @@ def try_fetch_details(update: Update, context: CallbackContext) -> int:
             reply_markup=ReplyKeyboardRemove(),
         )
         return MANUAL_NAME
-    
+
     is_leetcode = platform == "leetcode"
     update.message.reply_text(
         "This part may take a while to load.\n" "Do be patient with me!"
