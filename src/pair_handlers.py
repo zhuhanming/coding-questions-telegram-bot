@@ -377,7 +377,18 @@ def swap_pairs(update: Update, context: CallbackContext) -> int:
 
     chat = update.message.chat
     chat_dict = SERVICES.chat_service.get_chat_by_telegram_id(telegram_id=str(chat.id))
-    users = SERVICES.belong_service.get_users_in_chat(chat_id=chat_dict["id"])
+    users = [
+        user_dict
+        for user_dict in SERVICES.belong_service.get_users_in_chat(
+            chat_id=chat_dict["id"]
+        )
+        if not user_dict["is_opted_out"]
+    ]
+
+    if len(users) <= 1:
+        update.message.reply_text("There are insufficient opted-in users to swap!")
+        return ConversationHandler.END
+
     context.chat_data["USERS_FOR_SWAPPING"] = users
 
     message = "Please reply to this message with two space-separated numbers, indicating the two people you would like to swap!\n\n"
@@ -511,9 +522,9 @@ def swap_completed(update: Update, context: CallbackContext) -> int:
     paired_users = set(
         [item for pair in pairs for item in [pair["user_one_id"], pair["user_two_id"]]]
     )
-    unpaired_users = set([user_dict["id"] for user_dict in user_dicts]).difference(
-        paired_users
-    )
+    unpaired_users = set(
+        [user_dict["id"] for user_dict in user_dicts if not user_dict["is_opted_out"]]
+    ).difference(paired_users)
 
     summary = generate_group_interview_summary(
         pairs,
