@@ -1,2 +1,7 @@
 [flake8]
 exclude = env,venv,.env,.venv
+per-file-ignores =
+  # SQLAlchemy typechecking requires imports of models which are unused
+  ./src/database/*.py: F401
+  # __init__.py files often import other files for "exporting" purposes
+  */__init__.py: F401
