@@ -3,7 +3,7 @@ from typing import TypedDict
 
 from dotenv import load_dotenv
 
-from src.utils import unwrap
+from .utils import unwrap
 
 load_dotenv()
 

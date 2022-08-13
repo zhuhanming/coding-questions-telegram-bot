@@ -5,6 +5,7 @@ from .question_record import QuestionRecordService
 from .user import UserService
 
 
+# TODO: Look into dependency injection for this class
 class AppService:
     def __init__(self) -> None:
         self.user = UserService()
@@ -12,6 +13,3 @@ class AppService:
         self.belong = BelongService()
         self.question_record = QuestionRecordService()
         self.pair = InterviewPairService()
-
-
-APP_SERVICE = AppService()
