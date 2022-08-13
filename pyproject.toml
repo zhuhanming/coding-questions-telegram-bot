@@ -1,27 +1,27 @@
 [tool.poetry]
 name = "coding-questions-bot"
-version = "0.1.0"
+version = "2.0.0"
 description = "Telegram bot to help groups keep members accountable for interview preparation."
 authors = ["Hanming Zhu <hanming@huawen.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-python-telegram-bot = "^13.4.1"
-python-dotenv = "^0.17.0"
-selenium = "^3.141.0"
-webdriver-manager = "^3.4.0"
-SQLAlchemy = "^1.4.11"
-alembic = "^1.5.8"
-Cerberus = "^1.3.3"
-psycopg2 = "^2.8.6"
+python = "^3.10"
+python-telegram-bot = "^13.13"
+python-dotenv = "^0.20.0"
+selenium = "^4.4.0"
+webdriver-manager = "^3.8.3"
+SQLAlchemy = "^1.4.40"
+alembic = "^1.8.1"
+Cerberus = "^1.3.4"
+psycopg2 = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
-black = "^21.4b2"
-isort = "^5.8.0"
-flake8 = "^3.9.1"
-pytest = "^6.2.3"
-pytest-cov = "^2.11.1"
-mypy = "^0.812"
+black = "^22.6.0"
+isort = "^5.10.1"
+flake8 = "^5.0.4"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+mypy = "^0.971"
 sqlalchemy-stubs = "^0.4"
 
 [build-system]

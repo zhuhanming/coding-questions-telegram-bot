@@ -549,7 +549,7 @@ class QuestionInfoService:
         for difficulty in difficulties:
             difficulty = difficulty.title() if is_leetcode else difficulty
             try:
-                _ = self.driver.find_element_by_css_selector(
+                _ = self.driver.find_element(
                     (
                         f"span.difficulty-label.label-{difficulty}"
                         if is_leetcode
