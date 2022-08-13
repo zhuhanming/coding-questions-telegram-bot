@@ -9,12 +9,12 @@ load_dotenv()
 
 BOT_ENV = getenv("BOT_ENV")
 match BOT_ENV:
-  case "DEVELOPMENT":
-    DEFAULT_DATABASE_URL = "postgresql://coding_questions_bot:coding_questions_bot@localhost/coding_questions_bot"
-  case "TEST":
-    DEFAULT_DATABASE_URL = "postgresql://coding_questions_bot:coding_questions_bot@localhost/coding_questions_bot_test"
-  case _:
-    DEFAULT_DATABASE_URL = ""
+    case "DEVELOPMENT":
+        DEFAULT_DATABASE_URL = "postgresql://coding_questions_bot:coding_questions_bot@localhost/coding_questions_bot"
+    case "TEST":
+        DEFAULT_DATABASE_URL = "postgresql://coding_questions_bot:coding_questions_bot@localhost/coding_questions_bot_test"
+    case _:
+        DEFAULT_DATABASE_URL = ""
 DATABASE_URL = getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
 Config = TypedDict(
