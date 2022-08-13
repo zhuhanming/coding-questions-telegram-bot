@@ -16,12 +16,12 @@ You can get started with the Coding Questions Tracker by clicking [here](http://
 
 > The setup section and related scripts are largely inspired by those of [Acquity](https://github.com/acquity/api).
 
-First, install Python 3.9. Use [`pyenv`](https://github.com/pyenv/pyenv) to make your life easier.
+First, install Python 10. Use [`pyenv`](https://github.com/pyenv/pyenv) to make your life easier.
 
 ```bash
 curl https://pyenv.run | bash
-pyenv install 3.9.4 # >= 3.9
-pyenv local 3.9.4
+pyenv install 3.10.6 # >= 3.10
+pyenv local 3.10.6
 ```
 
 Install [Poetry](https://python-poetry.org), version 1.1.6.
