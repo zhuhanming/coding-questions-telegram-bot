@@ -11,7 +11,7 @@ from .base import BaseHandler
 
 
 class StartHandler(BaseHandler):
-    def _init_handler(self, app: Application) -> None:
+    def bind(self, app: Application) -> None:
         app.add_handler(CommandHandler("start", self.start))
 
     async def start(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:

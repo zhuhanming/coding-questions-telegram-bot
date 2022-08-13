@@ -8,18 +8,11 @@ from ..services import AppService
 
 
 class BaseHandler(ABC):
-    def __init__(
-        self,
-        app: Application,
-        service: AppService,
-        helper: AppHelper,
-        config: Config,
-    ) -> None:
+    def __init__(self, service: AppService, helper: AppHelper, config: Config) -> None:
         self.service = service
         self.helper = helper
         self.config = config
-        self._init_handler(app)
 
     @abstractmethod
-    def _init_handler(self, app: Application) -> None:
+    def bind(self, app: Application) -> None:
         pass
