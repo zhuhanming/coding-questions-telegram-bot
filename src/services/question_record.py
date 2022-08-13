@@ -2,7 +2,6 @@ from datetime import datetime
 
 from sqlalchemy.orm import aliased
 
-from ..config import Config
 from ..database import QuestionRecord, User, session_scope
 from ..utils import (
     UUID_RULE,
@@ -34,9 +33,6 @@ GET_QUESTION_RECORDS_SCHEMA = {
 
 
 class QuestionRecordService:
-    def __init__(self, config: Config):
-        self.config = config
-
     @validate_input(CREATE_QUESTION_RECORD_SCHEMA)
     def create_question_record(
         self, user_id: str, platform: str, question_name: str, difficulty: str

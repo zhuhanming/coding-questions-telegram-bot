@@ -1,4 +1,3 @@
-from ..config import Config
 from ..database import Chat, session_scope
 from ..utils import ResourceNotFoundException, validate_input
 
@@ -11,9 +10,6 @@ MIGRATE_CHAT_SCHEMA = {
 
 
 class ChatService:
-    def __init__(self, config: Config):
-        self.config = config
-
     @validate_input(CREATE_CHAT_SCHEMA)
     def create_if_not_exists(self, title: str, telegram_id: str) -> dict:
         with session_scope() as session:

@@ -1,4 +1,3 @@
-from ..config import Config
 from ..database import Belong, User, session_scope
 from ..utils import UUID_RULE, ResourceNotFoundException, validate_input
 
@@ -11,9 +10,6 @@ OPT_IN_OUT_SCHEMA = {
 
 
 class BelongService:
-    def __init__(self, config: Config):
-        self.config = config
-
     @validate_input(BELONG_SCHEMA)
     def add_user_to_chat_if_not_inside(self, user_id: str, chat_id: str) -> dict:
         with session_scope() as session:

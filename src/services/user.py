@@ -1,4 +1,3 @@
-from ..config import Config
 from ..database import User, session_scope
 from ..utils import UUID_RULE, UUIDS_RULE, ResourceNotFoundException, validate_input
 
@@ -12,9 +11,6 @@ GET_USER_SCHEMA = {"telegram_id": TELEGRAM_USER_ID_RULE}
 
 
 class UserService:
-    def __init__(self, config: Config):
-        self.config = config
-
     @validate_input(CREATE_USER_SCHEMA)
     def create_if_not_exists(self, full_name: str, telegram_id: str) -> dict:
         with session_scope() as session:

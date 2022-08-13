@@ -2,7 +2,6 @@ from datetime import datetime
 
 from sqlalchemy.sql.expression import or_
 
-from ..config import Config
 from ..database import InterviewPair, session_scope
 from ..utils import (
     TIMEZONE,
@@ -39,9 +38,6 @@ SWAP_INTERVIEW_PAIRS_SCHEMA = {
 
 
 class InterviewPairService:
-    def __init__(self, config: Config):
-        self.config = config
-
     @validate_input(CREATE_INTERVIEW_PAIRS_SCHEMA)
     def add_pairs_for_chat(self, pairs: list[list[str]], chat_id: str) -> None:
         monday = get_start_of_week()
