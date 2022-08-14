@@ -1,5 +1,5 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 from ..utils import unwrap
 from .base import BaseHandler
@@ -8,7 +8,6 @@ from .base import BaseHandler
 class StartHandler(BaseHandler):
     def bind(self, app: Application) -> None:
         app.add_handler(CommandHandler("start", self.start))
-        app.add_handler(CallbackQueryHandler(self.back, "back"))
 
     async def start(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         user = unwrap(update.effective_user)
@@ -23,17 +22,6 @@ class StartHandler(BaseHandler):
 
         self.helper.logger.info(f"User started: {user.full_name}")
         await update.message.reply_text(
-            f"Hello {user.full_name}! What do you want to do today?",
-            reply_markup=InlineKeyboardMarkup(self.__get_private_chat_keyboard()),
-        )
-
-    async def back(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        query = unwrap(update.callback_query)
-        user = unwrap(update.effective_user)
-        await query.answer()
-
-        self.helper.logger.info(f"User went back: {user.full_name}")
-        await query.edit_message_text(
             f"Hello {user.full_name}! What do you want to do today?",
             reply_markup=InlineKeyboardMarkup(self.__get_private_chat_keyboard()),
         )
