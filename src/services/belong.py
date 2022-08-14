@@ -49,14 +49,18 @@ class BelongService:
     @validate_input({"chat_id": UUID_RULE})
     def get_users_in_chat(self, chat_id: str) -> list[dict]:
         with session_scope() as session:
-            user_belong_pairs = (
+            user_belong_pairs: list[tuple[User, Belong]] = (
                 session.query(User, Belong)
                 .join(Belong, Belong.user_id == User.id)
                 .filter(Belong.chat_id == chat_id)
                 .all()
             )
             return [
-                {**u.as_dict(), "is_opted_out": b.is_opted_out}
+                {
+                    **u.as_dict(),
+                    "is_opted_out_of_questions": b.is_opted_out_of_questions,
+                    "is_opted_out_of_interviews": b.is_opted_out_of_interviews,
+                }
                 for (u, b) in user_belong_pairs
             ]
 
