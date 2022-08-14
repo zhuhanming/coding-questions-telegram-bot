@@ -6,18 +6,18 @@ from .base import BaseHandler
 
 class UnknownMessageHandler(BaseHandler):
     def bind(self, app: Application) -> None:
+        # Sometimes, people reply to messages from the bot in a group setting. We will just ignore such cases
         app.add_handler(
-            MessageHandler(filters.TEXT & ~filters.COMMAND, self.unknown_message)
+            MessageHandler(
+                filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
+                self.unknown_message,
+            )
         )
 
     async def unknown_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        if self._get_chat(update).type != "private":
-            # Sometimes, people reply to messages from the bot in a group setting.
-            # We will just ignore such cases and pretend we didn't receive any commands.
-            return
-
+        await self._clear_previous_message_reply_markup(update, context)
         await self._reply_text(
             context,
             self._get_message(update),

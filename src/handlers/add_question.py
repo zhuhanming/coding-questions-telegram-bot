@@ -45,6 +45,10 @@ class AddQuestionHandler(BaseHandler):
                     THANKS: [CallbackQueryHandler(self.thanks, "^(yes|no)$")],
                 },
                 fallbacks=[CallbackQueryHandler(self.cancel, "cancel")],
+                # There are scenarios where a user does some unexpected action and ends up being
+                # pulled out from the conversation halfway. This allows them to restart the
+                # conversation from the entry point.
+                allow_reentry=True,
             )
         )
 
