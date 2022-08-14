@@ -108,7 +108,7 @@ class ViewStatsHandler(BaseHandler):
             f"Questions you have completed {summary_type.format(is_last_week)}"
         )
         items = [
-            f'{record["question_name"]} [{record["difficulty"].title()}] [{format_platform_name(record["platform"])}]{"" if summary_type == SummaryType.ALL_UNIQUE else " (" + record["created_at"].strftime(strftime_format) + ")"}'
+            f"{record['question_name']} [{record['difficulty'].title()}] [{format_platform_name(record['platform'])}]{'' if summary_type == SummaryType.ALL_UNIQUE else ' (' + record['created_at'].strftime(strftime_format) + ')'}"
             for record in records
         ]
         pagination = self.helper.pagination.create_and_set_data(
