@@ -4,9 +4,10 @@ from src.config import APP_CONFIG
 from src.handlers import (
     AddQuestionHandler,
     CompleteInterviewHandler,
+    PaginationHandler,
     StartHandler,
-    StatsHandler,
     UnknownMessageHandler,
+    ViewStatsHandler,
 )
 from src.helpers import AppHelper
 from src.services import AppService
@@ -25,7 +26,7 @@ def main() -> None:
     StartHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     CompleteInterviewHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    StatsHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
+    ViewStatsHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # Opting in and out
 
     # Group chat command handlers
@@ -44,7 +45,7 @@ def main() -> None:
 
     # General command handlers
     UnknownMessageHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    # Pagionation
+    PaginationHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # Error
 
     # Run the bot until the user presses Ctrl-C

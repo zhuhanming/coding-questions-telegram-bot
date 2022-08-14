@@ -1,5 +1,6 @@
 from .add_question import AddQuestionHandler
 from .complete_interview import CompleteInterviewHandler
+from .pagination import PaginationHandler
 from .start import StartHandler
-from .stats import StatsHandler
 from .unknown_message import UnknownMessageHandler
+from .view_stats import ViewStatsHandler
