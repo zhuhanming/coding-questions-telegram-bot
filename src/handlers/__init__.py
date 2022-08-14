@@ -1,4 +1,5 @@
 from .add_question import AddQuestionHandler
+from .chat_created import ChatCreatedHandler
 from .complete_interview import CompleteInterviewHandler
 from .error import ErrorHandler
 from .pagination import PaginationHandler

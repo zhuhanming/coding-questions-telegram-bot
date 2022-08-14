@@ -6,6 +6,7 @@ from telegram.warnings import PTBUserWarning
 from src.config import APP_CONFIG
 from src.handlers import (
     AddQuestionHandler,
+    ChatCreatedHandler,
     CompleteInterviewHandler,
     ErrorHandler,
     PaginationHandler,
@@ -46,7 +47,7 @@ def main() -> None:
     # Settings
 
     # Chat status update handlers
-    # Chat created
+    ChatCreatedHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # New member
     # Member left
     # Chat migrated
