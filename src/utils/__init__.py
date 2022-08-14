@@ -1,4 +1,4 @@
-from .enums import SummaryType
+from .enums import OptInOutType, SummaryType
 from .exceptions import (
     BotException,
     InvalidRequestException,

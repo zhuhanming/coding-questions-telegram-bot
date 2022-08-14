@@ -1,11 +1,17 @@
 from ..database import Belong, User, session_scope
-from ..utils import UUID_RULE, ResourceNotFoundException, validate_input
+from ..utils import UUID_RULE, OptInOutType, ResourceNotFoundException, validate_input
 
 BELONG_SCHEMA = {"user_id": UUID_RULE, "chat_id": UUID_RULE}
+IS_OPTED_OUT_SCHEMA = {
+    "user_id": UUID_RULE,
+    "chat_id": UUID_RULE,
+    "opt_in_out_type": {"required": True},
+}
 OPT_IN_OUT_SCHEMA = {
     "user_id": UUID_RULE,
     "chat_id": UUID_RULE,
     "should_opt_out": {"type": "boolean", "required": True},
+    "opt_in_out_type": {"required": True},
 }
 
 
@@ -65,7 +71,9 @@ class BelongService:
             return belong is not None
 
     @validate_input(BELONG_SCHEMA)
-    def is_user_opted_out(self, user_id: str, chat_id: str) -> bool:
+    def is_user_opted_out(
+        self, user_id: str, chat_id: str, opt_in_out_type: OptInOutType
+    ) -> bool:
         with session_scope() as session:
             belong: Belong | None = (
                 session.query(Belong)
@@ -74,10 +82,18 @@ class BelongService:
             )
             if belong is None:
                 raise ResourceNotFoundException()
-            return belong.is_opted_out
+            if opt_in_out_type == OptInOutType.QUESTIONS:
+                return belong.is_opted_out_of_questions
+            return belong.is_opted_out_of_interviews
 
     @validate_input(OPT_IN_OUT_SCHEMA)
-    def opt_in_out(self, user_id: str, chat_id: str, should_opt_out: bool) -> dict:
+    def opt_in_out(
+        self,
+        user_id: str,
+        chat_id: str,
+        opt_in_out_type: OptInOutType,
+        should_opt_out: bool,
+    ) -> dict:
         with session_scope() as session:
             belong: Belong | None = (
                 session.query(Belong)
@@ -87,7 +103,10 @@ class BelongService:
             if belong is None:
                 raise ResourceNotFoundException()
 
-            belong.is_opted_out = should_opt_out
+            if opt_in_out_type == OptInOutType.QUESTIONS:
+                belong.is_opted_out_of_questions = should_opt_out
+            else:
+                belong.is_opted_out_of_interviews = should_opt_out
 
             session.commit()
             return belong.as_dict()

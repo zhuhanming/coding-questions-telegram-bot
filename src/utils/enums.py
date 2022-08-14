@@ -11,3 +11,8 @@ class SummaryType(Enum):
         if self.name in ["WEEKLY", "MONTHLY"]:
             return ("last " if is_last_week else "this ") + self.value
         return self.value
+
+
+class OptInOutType(Enum):
+    QUESTIONS = "questions"
+    INTERVIEWS = "interviews"
