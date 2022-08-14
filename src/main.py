@@ -1,7 +1,7 @@
 from telegram.ext import Application
 
 from src.config import APP_CONFIG
-from src.handlers import CancelHandler, StartHandler
+from src.handlers import AddQuestionHandler, CancelHandler, StartHandler
 from src.helpers import AppHelper
 from src.services import AppService
 
@@ -17,6 +17,7 @@ def main() -> None:
 
     # Individual chat command handlers
     StartHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
+    AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # General command handlers
     CancelHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
