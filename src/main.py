@@ -1,7 +1,12 @@
 from telegram.ext import Application
 
 from src.config import APP_CONFIG
-from src.handlers import AddQuestionHandler, StartHandler, UnknownMessageHandler
+from src.handlers import (
+    AddQuestionHandler,
+    CompleteInterviewHandler,
+    StartHandler,
+    UnknownMessageHandler,
+)
 from src.helpers import AppHelper
 from src.services import AppService
 
@@ -18,6 +23,7 @@ def main() -> None:
     # Individual chat command handlers
     StartHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
+    CompleteInterviewHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # General command handlers
     UnknownMessageHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
