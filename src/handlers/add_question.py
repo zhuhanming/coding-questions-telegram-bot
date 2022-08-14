@@ -17,6 +17,8 @@ FETCH, MANUAL_NAME, MANUAL_DIFFICULTY_PRE, MANUAL_DIFFICULTY, THANKS = range(5)
 
 # TODO: Add comments to code
 class AddQuestionHandler(BaseHandler):
+    # TODO: Look into the per_* configurations
+    # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Frequently-Asked-Questions#what-do-the-per_-settings-in-conversationhandler-do
     def bind(self, app: Application) -> None:
         app.add_handler(
             ConversationHandler(
@@ -53,7 +55,7 @@ class AddQuestionHandler(BaseHandler):
         await self._edit_query_text(
             context,
             query,
-            f"Hi {self._get_user(update).full_name}! Glad to see that you've been working hard!\n"
+            f"Hi {self._get_user(update).full_name}! Glad to see that you've been working hard!\n\n"
             "Can you send me the URL of the question that you've attempted?",
             self.__get_cancel_keyboard(),
         )
@@ -78,7 +80,7 @@ class AddQuestionHandler(BaseHandler):
                 context,
                 original_message,
                 "I was unable to fetch the question details from your URL.\n\n"
-                "Do you mind letting me know what the name of the question you attempted was?\n",
+                "Do you mind letting me know what the name of the question you attempted was?",
                 self.__get_cancel_keyboard(),
             )
             return MANUAL_NAME
@@ -87,7 +89,7 @@ class AddQuestionHandler(BaseHandler):
         message = await self._reply_text(
             context,
             original_message,
-            "This part may take a while to load.\n" "Do be patient with me!",
+            "This part may take a while to load.\n\n" "Do be patient with me!",
         )
         question_info = self.helper.question.get_question_info(
             url=url, is_leetcode=is_leetcode
@@ -188,7 +190,7 @@ class AddQuestionHandler(BaseHandler):
             await self._edit_query_text(
                 context,
                 query,
-                "Sorry that I got your question details wrong!\n"
+                "Sorry that I got your question details wrong!\n\n"
                 "Do you mind sending the name of the question here?",
                 self.__get_cancel_keyboard(),
             )
