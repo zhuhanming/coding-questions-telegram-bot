@@ -1,7 +1,7 @@
 from telegram.ext import Application
 
 from src.config import APP_CONFIG
-from src.handlers import AddQuestionHandler, CancelHandler, StartHandler
+from src.handlers import AddQuestionHandler, StartHandler
 from src.helpers import AppHelper
 from src.services import AppService
 
@@ -20,7 +20,6 @@ def main() -> None:
     AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # General command handlers
-    CancelHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # Run the bot until the user presses Ctrl-C
     APP_HELPER.logger.info("The application is up and running")

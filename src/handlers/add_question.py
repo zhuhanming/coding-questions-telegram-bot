@@ -233,7 +233,7 @@ class AddQuestionHandler(BaseHandler):
         await self._edit_query_text(
             context,
             query,
-            "No worries! Feel free to add a question when you're ready!\n\n"
+            "No worries! Feel free to add another question when you're ready!\n\n"
             "How else can I help you?",
             self.__get_final_keyboard(),
         )
