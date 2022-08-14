@@ -5,14 +5,10 @@ from .base import BaseHandler
 
 
 class UnknownMessageHandler(BaseHandler):
+    # The binding for this command should go last
     def bind(self, app: Application) -> None:
-        # Sometimes, people reply to messages from the bot in a group setting. We will just ignore such cases
-        app.add_handler(
-            MessageHandler(
-                filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE,
-                self.unknown_message,
-            )
-        )
+        # Sometimes, people reply to messages from the bot in a group setting. We will just ignore such cases.
+        app.add_handler(MessageHandler(filters.ChatType.PRIVATE, self.unknown_message))
 
     async def unknown_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
