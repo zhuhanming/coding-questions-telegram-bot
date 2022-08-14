@@ -10,6 +10,7 @@ from src.handlers import (
     CompleteInterviewHandler,
     ErrorHandler,
     LeftChatMemberHandler,
+    MigrateHandler,
     NewChatMembersHandler,
     PaginationHandler,
     StartHandler,
@@ -52,7 +53,7 @@ def main() -> None:
     ChatCreatedHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     NewChatMembersHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     LeftChatMemberHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    # Chat migrated
+    MigrateHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # General command handlers
     UnknownMessageHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)

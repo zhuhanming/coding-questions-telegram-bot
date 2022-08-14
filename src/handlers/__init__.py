@@ -3,6 +3,7 @@ from .chat_created import ChatCreatedHandler
 from .complete_interview import CompleteInterviewHandler
 from .error import ErrorHandler
 from .left_chat_member import LeftChatMemberHandler
+from .migrate import MigrateHandler
 from .new_chat_members import NewChatMembersHandler
 from .pagination import PaginationHandler
 from .start import StartHandler
