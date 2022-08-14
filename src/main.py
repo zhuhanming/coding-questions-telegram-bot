@@ -1,4 +1,7 @@
+from warnings import filterwarnings
+
 from telegram.ext import Application
+from telegram.warnings import PTBUserWarning
 
 from src.config import APP_CONFIG
 from src.handlers import (
@@ -11,6 +14,10 @@ from src.handlers import (
 )
 from src.helpers import AppHelper
 from src.services import AppService
+
+filterwarnings(
+    action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning
+)
 
 
 def main() -> None:
@@ -33,7 +40,7 @@ def main() -> None:
     # Members
     # Add me
     # Stats - handle questions + interviews, this week + last week
-    # Generate pairs - allow for regeneration aka shuffling
+    # Generate pairs - allow for regeneration aka reshuffling
     # Swap partners
     # Settings
 

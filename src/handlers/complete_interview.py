@@ -24,6 +24,12 @@ class CompleteInterviewHandler(BaseHandler):
                 # pulled out from the conversation halfway. This allows them to restart the
                 # conversation from the entry point.
                 allow_reentry=True,
+                # The below settings don't really matter since we're assuming that the add_question
+                # occurs in private chats, but this is just for sanity reasons.
+                # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Frequently-Asked-Questions#what-do-the-per_-settings-in-conversationhandler-do
+                per_chat=True,
+                per_user=True,
+                per_message=False,  # We only want a single conversation to occur
             )
         )
 
