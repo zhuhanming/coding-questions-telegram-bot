@@ -6,3 +6,4 @@ from .pagination import PaginationHandler
 from .start import StartHandler
 from .unknown_message import UnknownMessageHandler
 from .view_stats import ViewStatsHandler
+from .new_chat_members import NewChatMembersHandler

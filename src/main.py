@@ -13,6 +13,7 @@ from src.handlers import (
     StartHandler,
     UnknownMessageHandler,
     ViewStatsHandler,
+    NewChatMembersHandler,
 )
 from src.helpers import AppHelper
 from src.services import AppService
@@ -48,7 +49,7 @@ def main() -> None:
 
     # Chat status update handlers
     ChatCreatedHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    # New member
+    NewChatMembersHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # Member left
     # Chat migrated
 
