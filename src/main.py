@@ -9,11 +9,12 @@ from src.handlers import (
     ChatCreatedHandler,
     CompleteInterviewHandler,
     ErrorHandler,
+    LeftChatMemberHandler,
+    NewChatMembersHandler,
     PaginationHandler,
     StartHandler,
     UnknownMessageHandler,
     ViewStatsHandler,
-    NewChatMembersHandler,
 )
 from src.helpers import AppHelper
 from src.services import AppService
@@ -50,7 +51,7 @@ def main() -> None:
     # Chat status update handlers
     ChatCreatedHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     NewChatMembersHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    # Member left
+    LeftChatMemberHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # Chat migrated
 
     # General command handlers
