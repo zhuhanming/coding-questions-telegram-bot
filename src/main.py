@@ -10,6 +10,7 @@ from src.handlers import (
     CompleteInterviewHandler,
     ErrorHandler,
     LeftChatMemberHandler,
+    MembersHandler,
     MigrateHandler,
     NewChatMembersHandler,
     PaginationHandler,
@@ -42,7 +43,7 @@ def main() -> None:
     # Opting in and out
 
     # Group chat command handlers
-    # Members
+    MembersHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # Add me
     # Stats - handle questions + interviews, this week + last week
     # Generate pairs - allow for regeneration aka reshuffling
