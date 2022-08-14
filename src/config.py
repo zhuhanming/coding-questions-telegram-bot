@@ -17,6 +17,14 @@ match BOT_ENV:
         DEFAULT_DATABASE_URL = ""
 DATABASE_URL = getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
+PRIVATE_COMMANDS = [
+    ("start", "Get started with the bot! This is the entry point for everything.")
+]
+GROUP_COMMANDS = [
+    ("members", "See a list of members in the current group."),
+    ("add_me", "Add yourself to current group members."),
+]
+
 Config = TypedDict(
     "Config",
     {
@@ -26,6 +34,8 @@ Config = TypedDict(
         "WEEKLY_TARGET": int,
         "TRACEBACK_LENGTH": int,
         "BOT_URL": str,
+        "PRIVATE_COMMANDS": list[tuple[str, str]],
+        "GROUP_COMMANDS": list[tuple[str, str]],
     },
 )
 
@@ -36,4 +46,6 @@ APP_CONFIG: Config = {
     "WEEKLY_TARGET": 7,
     "TRACEBACK_LENGTH": 3000,
     "BOT_URL": "http://t.me/CodingQuestionsBot",
+    "PRIVATE_COMMANDS": PRIVATE_COMMANDS,
+    "GROUP_COMMANDS": GROUP_COMMANDS,
 }

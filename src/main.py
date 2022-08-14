@@ -1,5 +1,6 @@
 from warnings import filterwarnings
 
+from telegram import BotCommandScopeAllGroupChats, BotCommandScopeDefault
 from telegram.ext import Application
 from telegram.warnings import PTBUserWarning
 
@@ -27,6 +28,16 @@ filterwarnings(
 )
 
 
+async def post_init(application: Application) -> None:
+    await application.bot.delete_my_commands()
+    await application.bot.set_my_commands(
+        commands=APP_CONFIG["PRIVATE_COMMANDS"], scope=BotCommandScopeDefault()
+    )
+    await application.bot.set_my_commands(
+        commands=APP_CONFIG["GROUP_COMMANDS"], scope=BotCommandScopeAllGroupChats()
+    )
+
+
 def main() -> None:
     """Start the bot."""
     # Initialise the app components
@@ -34,7 +45,12 @@ def main() -> None:
     APP_HELPER = AppHelper()
 
     # Create the Application and pass it the bot's token.
-    application = Application.builder().token(APP_CONFIG["BOT_ACCESS_TOKEN"]).build()
+    application = (
+        Application.builder()
+        .token(APP_CONFIG["BOT_ACCESS_TOKEN"])
+        .post_init(post_init)
+        .build()
+    )
 
     # Individual chat command handlers
     StartHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
