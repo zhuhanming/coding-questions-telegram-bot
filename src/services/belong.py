@@ -24,7 +24,7 @@ class BelongService:
                 session.flush()
 
             session.commit()
-        return belong.as_dict()
+            return belong.as_dict()
 
     @validate_input(BELONG_SCHEMA)
     def remove_user_from_chat_if_inside(self, user_id: str, chat_id: str) -> bool:
@@ -38,7 +38,7 @@ class BelongService:
                 session.delete(belong)
 
             session.commit()
-        return belong is not None
+            return belong is not None
 
     @validate_input({"chat_id": UUID_RULE})
     def get_users_in_chat(self, chat_id: str) -> list[dict]:
@@ -49,10 +49,10 @@ class BelongService:
                 .filter(Belong.chat_id == chat_id)
                 .all()
             )
-        return [
-            {**u.as_dict(), "is_opted_out": b.is_opted_out}
-            for (u, b) in user_belong_pairs
-        ]
+            return [
+                {**u.as_dict(), "is_opted_out": b.is_opted_out}
+                for (u, b) in user_belong_pairs
+            ]
 
     @validate_input(BELONG_SCHEMA)
     def is_user_inside_chat(self, user_id: str, chat_id: str) -> bool:
@@ -62,7 +62,7 @@ class BelongService:
                 .filter_by(user_id=user_id, chat_id=chat_id)
                 .one_or_none()
             )
-        return belong is not None
+            return belong is not None
 
     @validate_input(BELONG_SCHEMA)
     def is_user_opted_out(self, user_id: str, chat_id: str) -> bool:
@@ -74,7 +74,7 @@ class BelongService:
             )
             if belong is None:
                 raise ResourceNotFoundException()
-        return belong.is_opted_out
+            return belong.is_opted_out
 
     @validate_input(OPT_IN_OUT_SCHEMA)
     def opt_in_out(self, user_id: str, chat_id: str, should_opt_out: bool) -> dict:
@@ -90,4 +90,4 @@ class BelongService:
             belong.is_opted_out = should_opt_out
 
             session.commit()
-        return belong.as_dict()
+            return belong.as_dict()

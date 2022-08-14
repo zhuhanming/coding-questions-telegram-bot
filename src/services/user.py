@@ -25,7 +25,7 @@ class UserService:
                 user.full_name = full_name
 
             session.commit()
-        return user.as_dict()
+            return user.as_dict()
 
     @validate_input(GET_USER_SCHEMA)
     def get_user_by_telegram_id(self, telegram_id: str) -> dict:
@@ -35,7 +35,7 @@ class UserService:
             )
             if user is None:
                 raise ResourceNotFoundException()
-        return user.as_dict()
+            return user.as_dict()
 
     @validate_input({"id": UUID_RULE})
     def get_user_by_id(self, id: str) -> dict:
@@ -43,7 +43,7 @@ class UserService:
             user: User | None = session.query(User).filter_by(id=id).one_or_none()
             if user is None:
                 raise ResourceNotFoundException()
-        return user.as_dict()
+            return user.as_dict()
 
     @validate_input({"ids": UUIDS_RULE})
     def get_users_by_id(self, ids: list[str]) -> list[dict]:
@@ -51,4 +51,4 @@ class UserService:
             users: list[User] = session.query(User).filter(User.id.in_(ids)).all()
             if len(users) != len(ids):
                 raise ResourceNotFoundException()
-        return [user.as_dict() for user in users]
+            return [user.as_dict() for user in users]

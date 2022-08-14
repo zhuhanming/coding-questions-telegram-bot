@@ -53,7 +53,7 @@ class QuestionRecordService:
             session.add(question_record)
             session.commit()
 
-        return question_record.as_dict()
+            return question_record.as_dict()
 
     @validate_input(GET_QUESTION_RECORD_SCHEMA)
     def get_records_by_user(
@@ -81,7 +81,7 @@ class QuestionRecordService:
             else:
                 question_records = query.order_by(QuestionRecord.created_at).all()
 
-        return [question_record.as_dict() for question_record in question_records]
+            return [question_record.as_dict() for question_record in question_records]
 
     # Returns a dictionary with user ID as the key and a list of question records as the value.
     @validate_input(GET_QUESTION_RECORDS_SCHEMA)
@@ -119,20 +119,20 @@ class QuestionRecordService:
             else:
                 user_record_pairs = query.order_by(question_alias.created_at).all()
 
-        results: dict[str, dict] = {}
-        for user, question_record in user_record_pairs:
-            user_dict = user.as_dict()
-            results[user_dict["id"]] = results.get(
-                user_dict["id"],
-                {"full_name": user_dict["full_name"], "question_records": []},
-            )
-            if question_record is None:
-                results[user_dict["id"]]["question_records"].clear()
-            else:
-                results[user_dict["id"]]["question_records"].append(
-                    question_record.as_dict()
+            results: dict[str, dict] = {}
+            for user, question_record in user_record_pairs:
+                user_dict = user.as_dict()
+                results[user_dict["id"]] = results.get(
+                    user_dict["id"],
+                    {"full_name": user_dict["full_name"], "question_records": []},
                 )
-        return results
+                if question_record is None:
+                    results[user_dict["id"]]["question_records"].clear()
+                else:
+                    results[user_dict["id"]]["question_records"].append(
+                        question_record.as_dict()
+                    )
+            return results
 
     def __get_before_date(
         self, summary_type: SummaryType | None, is_last_week: bool = False

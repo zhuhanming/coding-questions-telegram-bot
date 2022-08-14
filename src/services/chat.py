@@ -24,7 +24,7 @@ class ChatService:
                 chat.title = title
 
             session.commit()
-        return chat.as_dict()
+            return chat.as_dict()
 
     @validate_input(GET_CHAT_SCHEMA)
     def get_chat_by_telegram_id(self, telegram_id: str) -> dict:
@@ -34,7 +34,7 @@ class ChatService:
             )
             if chat is None:
                 raise ResourceNotFoundException()
-        return chat.as_dict()
+            return chat.as_dict()
 
     # There are times where the chat ID actually changes due to e.g. upgrading to a supergroup.
     @validate_input(MIGRATE_CHAT_SCHEMA)
@@ -51,4 +51,4 @@ class ChatService:
             chat.telegram_id = new_telegram_id
 
             session.commit()
-        return chat.as_dict()
+            return chat.as_dict()

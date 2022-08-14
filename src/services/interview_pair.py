@@ -69,12 +69,11 @@ class InterviewPairService:
                 .filter(InterviewPair.started_at < after_date)
                 .all()
             )
-        return [pair.as_dict() for pair in pairs]
+            return [pair.as_dict() for pair in pairs]
 
     @validate_input(GET_INTERVIEW_PAIRS_FOR_USER_SCHEMA)
     def get_pairs_for_user(self, user_id: str, is_current: bool = True) -> list[dict]:
         monday = get_start_of_week()
-        results = []
         with session_scope() as session:
             query = (
                 session.query(InterviewPair)
@@ -90,6 +89,7 @@ class InterviewPairService:
                 query = query.filter(InterviewPair.started_at >= monday)
             pairs = query.all()
 
+            results = []
             excluded_keys = {
                 "user_one_id",
                 "user_two_id",
@@ -110,7 +110,7 @@ class InterviewPairService:
                     entry["partner_name"] = pair_dict["user_one_name"]
 
                 results.append(entry)
-        return results
+            return results
 
     @validate_input(MARK_INTERVIEW_PAIR_AS_COMPLETED_SCHEMA)
     def mark_pair_as_completed(self, id: str) -> dict:
@@ -122,7 +122,7 @@ class InterviewPairService:
             interview_pair.is_completed = True
 
             session.commit()
-        return interview_pair.as_dict()
+            return interview_pair.as_dict()
 
     # It's possible for the pair ID to be None when the user was originally unpaired.
     @validate_input(SWAP_INTERVIEW_PAIRS_SCHEMA)
@@ -155,7 +155,7 @@ class InterviewPairService:
                 else:
                     pair_two.user_two_id = user_one_id
             session.commit()
-        return [
-            pair_one.as_dict() if pair_one is not None else None,
-            pair_two.as_dict() if pair_two is not None else None,
-        ]
+            return [
+                pair_one.as_dict() if pair_one is not None else None,
+                pair_two.as_dict() if pair_two is not None else None,
+            ]
