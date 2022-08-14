@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import pytz
 
 TIMEZONE = tz = pytz.timezone("Asia/Singapore")
+WEEK_SUMMARY_STRFTIME_FORMAT = "%A"
+MONTH_ALL_SUMMARY_STRFTIME_FORMAT = "%-d %b"
 
 
 def get_start_of_week() -> datetime:
