@@ -12,17 +12,22 @@ GET_USER_SCHEMA = {"telegram_id": TELEGRAM_USER_ID_RULE}
 
 class UserService:
     @validate_input(CREATE_USER_SCHEMA)
-    def create_if_not_exists(self, full_name: str, telegram_id: str) -> dict:
+    def create_if_not_exists(
+        self, full_name: str, username: str, telegram_id: str
+    ) -> dict:
         with session_scope() as session:
             user: User | None = (
                 session.query(User).filter_by(telegram_id=telegram_id).one_or_none()
             )
             if user is None:
-                user = User(full_name=full_name, telegram_id=telegram_id)
+                user = User(
+                    full_name=full_name, username=username, telegram_id=telegram_id
+                )
                 session.add(user)
                 session.flush()
             else:
                 user.full_name = full_name
+                user.username = username
 
             session.commit()
             return user.as_dict()

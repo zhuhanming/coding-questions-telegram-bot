@@ -16,6 +16,7 @@ class User(Base):
 
     full_name = Column(String, nullable=False)
     telegram_id = Column(String, nullable=False, unique=True)
+    username = Column(String, nullable=True, unique=True)
 
     question_records = relationship("QuestionRecord", back_populates="user")
     user_belongs_in = relationship(

@@ -207,7 +207,7 @@ class AddQuestionHandler(BaseHandler):
         user = self._get_user(update)
         # Persist data to database
         user_dict = self.service.user.create_if_not_exists(
-            full_name=user.full_name, telegram_id=str(user.id)
+            full_name=user.full_name, username=user.username, telegram_id=str(user.id)
         )
         self.service.question_record.create_question_record(
             user_id=user_dict["id"],

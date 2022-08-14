@@ -77,7 +77,7 @@ class ViewStatsHandler(BaseHandler):
         query = await self._get_and_answer_query(update)
         user = self._get_user(update)
         user_dict = self.service.user.create_if_not_exists(
-            full_name=user.full_name, telegram_id=str(user.id)
+            full_name=user.full_name, username=user.username, telegram_id=str(user.id)
         )
         records = self.service.question_record.get_records_by_user(
             user_id=user_dict["id"],
