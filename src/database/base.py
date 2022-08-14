@@ -21,6 +21,7 @@ class Base(_base):
         return {}
 
     def as_dict(self) -> dict:
+        """This method must be called within the session scope!"""
         d = {}
         columns = self.__table__.columns.keys()
 
