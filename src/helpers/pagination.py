@@ -26,6 +26,7 @@ class PaginationData:
         self.other_buttons = other_buttons
         self.total_pages = ceil(len(self.items) / num_items_per_page)
 
+    # TODO: Bold the headers
     def generate_message(self, page: int) -> tuple[str, InlineKeyboardMarkup]:
         """The page number is a zero-based index."""
         buttons = []

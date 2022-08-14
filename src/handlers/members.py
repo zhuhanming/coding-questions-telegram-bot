@@ -10,6 +10,8 @@ class MembersHandler(BaseHandler):
             CommandHandler("members", self.members, filters.ChatType.GROUPS)
         )
 
+    # TODO: Add summary of group member data
+    # TODO: Add reminder to use /add_me if not in the list
     async def members(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         message = self._get_message(update)
         chat = self._get_chat(update)
@@ -33,6 +35,8 @@ class MembersHandler(BaseHandler):
 
     def __user_dict_mapper(self, user: dict) -> str:
         result = str(user["full_name"])
+        if user["username"] is not None:
+            result += f" @{user['username']}"
         if user["is_opted_out_of_questions"] and user["is_opted_out_of_interviews"]:
             result += " (Opted Out of Questions & Interviews)"
         elif user["is_opted_out_of_questions"]:
