@@ -99,6 +99,7 @@ class BaseHandler(ABC):
         new_message = await message.reply_text(
             reply_text,
             reply_markup=reply_markup,
+            reply_to_message_id=False,
         )
         self._set_previous_message_id(context, new_message)
         return cast(Message, new_message)
