@@ -3,6 +3,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 from ..utils import validate_input
@@ -89,12 +90,11 @@ class QuestionHelper:
         for difficulty in difficulties:
             difficulty = difficulty.title() if is_leetcode else difficulty
             try:
-                _ = self.driver.find_element_by_css_selector(
-                    (
-                        f"span.difficulty-label.label-{difficulty}"
-                        if is_leetcode
-                        else f"div.difficulty-block > p.difficulty-{difficulty}"
-                    )
+                _ = self.driver.find_element(
+                    By.CSS_SELECTOR,
+                    f"span.difficulty-label.label-{difficulty}"
+                    if is_leetcode
+                    else f"div.difficulty-block > p.difficulty-{difficulty}",
                 )
                 return difficulty.lower()
             except NoSuchElementException:
