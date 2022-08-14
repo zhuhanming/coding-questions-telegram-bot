@@ -7,6 +7,7 @@ from src.config import APP_CONFIG
 from src.handlers import (
     AddQuestionHandler,
     CompleteInterviewHandler,
+    ErrorHandler,
     PaginationHandler,
     StartHandler,
     UnknownMessageHandler,
@@ -53,7 +54,7 @@ def main() -> None:
     # General command handlers
     UnknownMessageHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     PaginationHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    # Error
+    ErrorHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # Run the bot until the user presses Ctrl-C
     APP_HELPER.logger.info("The application is up and running")

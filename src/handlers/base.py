@@ -69,6 +69,9 @@ class BaseHandler(ABC):
     def _get_chat(self, update: Update) -> Chat:
         return unwrap(self._get_message(update).chat)
 
+    def _get_error(self, context: ContextTypes.DEFAULT_TYPE) -> Exception:
+        return unwrap(context.error)
+
     async def _clear_previous_message_reply_markup(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
