@@ -19,6 +19,7 @@ class LeftChatMemberHandler(BaseHandler):
     ) -> None:
         message = self._get_message(update)
         if message.left_chat_member is None:
+            # Fail silently
             return
         chat = self._get_chat(update)
         user = message.left_chat_member
