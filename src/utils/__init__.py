@@ -8,6 +8,7 @@ from .exceptions import (
 )
 from .platforms import format_platform_name
 from .schemata import UUID_REGEX, UUID_RULE, UUIDS_RULE, validate_input
+from .sort import difficulty_to_int, platform_to_int
 from .time import (
     MONTH_ALL_SUMMARY_STRFTIME_FORMAT,
     TIMEZONE,
