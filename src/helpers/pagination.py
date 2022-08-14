@@ -3,7 +3,7 @@ from typing import Callable, cast
 from uuid import uuid4
 
 from expiringdict import ExpiringDict
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class PaginationData:
@@ -103,7 +103,10 @@ class PaginationData:
         if page_buttons:
             buttons.append(page_buttons)
 
-        message_parts = [f"{self.header_text} ({page + 1}/{self.total_pages}):\n\n"]
+        full_header = self.header_text
+        if self.total_pages > 1:
+            full_header += f" ({page + 1}/{self.total_pages})"
+        message_parts = [f"{full_header}:\n\n"]
 
         for i in range(
             page * self.num_items_per_page,
@@ -124,7 +127,7 @@ class PaginationHelper:
         # Cache 1000 items for up to 1 day each.
         self.cache = ExpiringDict(1000, 86400)
 
-    def create_pagination(
+    def create_and_set_data(
         self,
         header_text: str,
         items: list[str],
@@ -134,7 +137,7 @@ class PaginationHelper:
         other_buttons: list[list[InlineKeyboardButton]] = [],
     ) -> PaginationData:
         id = str(uuid4())
-        return PaginationData(
+        pagination = PaginationData(
             id,
             header_text,
             items,
@@ -142,9 +145,8 @@ class PaginationHelper:
             item_to_button_generator,
             other_buttons,
         )
+        self.cache[pagination.id] = pagination
+        return pagination
 
-    def set_data(self, pagination: PaginationData, message: Message) -> None:
-        self.cache[pagination.id] = {"pagination": pagination, "message": message}
-
-    def get_data(self, pagination_id: str) -> dict[str, object] | None:
-        return cast(dict[str, object] | None, self.cache.get(pagination_id, None))
+    def get_data(self, pagination_id: str) -> PaginationData | None:
+        return cast(PaginationData | None, self.cache.get(pagination_id, None))
