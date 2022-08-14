@@ -5,6 +5,7 @@ from src.handlers import (
     AddQuestionHandler,
     CompleteInterviewHandler,
     StartHandler,
+    StatsHandler,
     UnknownMessageHandler,
 )
 from src.helpers import AppHelper
@@ -24,6 +25,7 @@ def main() -> None:
     StartHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     CompleteInterviewHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
+    StatsHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # General command handlers
     UnknownMessageHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
