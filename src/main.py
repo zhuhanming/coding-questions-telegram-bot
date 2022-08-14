@@ -5,6 +5,7 @@ from telegram.warnings import PTBUserWarning
 
 from src.config import APP_CONFIG
 from src.handlers import (
+    AddMeHandler,
     AddQuestionHandler,
     ChatCreatedHandler,
     CompleteInterviewHandler,
@@ -44,7 +45,7 @@ def main() -> None:
 
     # Group chat command handlers
     MembersHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    # Add me
+    AddMeHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # Stats - handle questions + interviews, this week + last week
     # Generate pairs - allow for regeneration aka reshuffling
     # Swap partners
