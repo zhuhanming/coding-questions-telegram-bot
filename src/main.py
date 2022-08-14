@@ -26,9 +26,26 @@ def main() -> None:
     AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     CompleteInterviewHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     StatsHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
+    # Opting in and out
+
+    # Group chat command handlers
+    # Members
+    # Add me
+    # Stats - handle questions + interviews, this week + last week
+    # Generate pairs - allow for regeneration aka shuffling
+    # Swap partners
+    # Settings
+
+    # Chat status update handlers
+    # Chat created
+    # New member
+    # Member left
+    # Chat migrated
 
     # General command handlers
     UnknownMessageHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
+    # Pagionation
+    # Error
 
     # Run the bot until the user presses Ctrl-C
     APP_HELPER.logger.info("The application is up and running")
