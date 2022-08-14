@@ -25,7 +25,7 @@ class BaseHandler(ABC):
     def _get_context_value(self, context: ContextTypes.DEFAULT_TYPE, key: str) -> Any:
         if context.user_data is None:
             raise InvalidUserDataException()
-        return context.user_data[key]
+        return context.user_data.get(key, None)
 
     def _set_context_value(
         self, context: ContextTypes.DEFAULT_TYPE, key: str, value: Any
@@ -72,10 +72,14 @@ class BaseHandler(ABC):
     async def _clear_previous_message_reply_markup(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
+        previous_message_id = self._get_previous_message_id(context)
+        if previous_message_id is None:
+            return
+
         try:
             await context.bot.edit_message_reply_markup(
                 self._get_chat(update).id,
-                self._get_previous_message_id(context),
+                previous_message_id,
                 reply_markup=None,
             )
         except BadRequest:
