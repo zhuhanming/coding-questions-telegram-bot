@@ -5,6 +5,7 @@ TELEGRAM_USER_ID_REGEX = "^[0-9]+$"
 TELEGRAM_USER_ID_RULE = {"type": "string", "regex": TELEGRAM_USER_ID_REGEX}
 CREATE_USER_SCHEMA = {
     "full_name": {"type": "string"},
+    "username": {"type": "string"},
     "telegram_id": TELEGRAM_USER_ID_RULE,
 }
 GET_USER_SCHEMA = {"telegram_id": TELEGRAM_USER_ID_RULE}
