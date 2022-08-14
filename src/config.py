@@ -26,7 +26,6 @@ Config = TypedDict(
         "WEEKLY_TARGET": int,
         "TRACEBACK_LENGTH": int,
         "BOT_URL": str,
-        "BOT_ENV": str,
     },
 )
 
@@ -37,5 +36,4 @@ APP_CONFIG: Config = {
     "WEEKLY_TARGET": 7,
     "TRACEBACK_LENGTH": 3000,
     "BOT_URL": "http://t.me/CodingQuestionsBot",
-    "BOT_ENV": BOT_ENV,
 }
