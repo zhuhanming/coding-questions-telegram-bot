@@ -25,6 +25,7 @@ class MembersHandler(BaseHandler):
                 "There are no members in this chat!\n\n"
                 "Please add yourself with the /add_me command.",
             )
+            return
 
         header_text = f"Members in {chat_dict['title']}"
         user_dicts.sort(key=lambda x: str(x["full_name"]).lower())
