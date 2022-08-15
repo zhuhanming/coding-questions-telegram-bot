@@ -12,6 +12,7 @@ from ..utils import (
 from .base import BaseHandler
 
 
+# TODO: Add past_interview_pairs
 class ViewStatsHandler(BaseHandler):
     def bind(self, app: Application) -> None:
         app.add_handler(CallbackQueryHandler(self.view_stats, "view_stats"))
