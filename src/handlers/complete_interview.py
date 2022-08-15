@@ -87,16 +87,17 @@ class CompleteInterviewHandler(BaseHandler):
     ) -> InlineKeyboardMarkup:
         buttons = [
             [InlineKeyboardButton(text="Add question", callback_data="add_question")],
-            [InlineKeyboardButton(text="View stats", callback_data="view_stats")],
+            [
+                InlineKeyboardButton(text="Opt in/out", callback_data="opt_in_out"),
+                InlineKeyboardButton(text="View stats", callback_data="view_stats"),
+            ],
         ]
         if show_interview_button:
-            buttons.insert(
+            buttons[0].insert(
                 1,
-                [
-                    InlineKeyboardButton(
-                        text="Complete another interview",
-                        callback_data="complete_interview",
-                    )
-                ],
+                InlineKeyboardButton(
+                    text="Complete another interview",
+                    callback_data="complete_interview",
+                ),
             )
         return InlineKeyboardMarkup(buttons)
