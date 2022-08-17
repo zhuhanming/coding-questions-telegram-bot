@@ -11,6 +11,7 @@ from src.handlers import (
     ChatCreatedHandler,
     CompleteInterviewHandler,
     ErrorHandler,
+    IndividualStatsHandler,
     LeftChatMemberHandler,
     MembersHandler,
     MigrateHandler,
@@ -19,7 +20,6 @@ from src.handlers import (
     PaginationHandler,
     StartHandler,
     UnknownMessageHandler,
-    ViewStatsHandler,
 )
 from src.helpers import AppHelper
 from src.services import AppService
@@ -57,7 +57,7 @@ def main() -> None:
     StartHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     CompleteInterviewHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    ViewStatsHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
+    IndividualStatsHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     OptInOutHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # Group chat command handlers

@@ -13,9 +13,9 @@ from .base import BaseHandler
 
 
 # TODO: Add past_interview_pairs
-class ViewStatsHandler(BaseHandler):
+class IndividualStatsHandler(BaseHandler):
     def bind(self, app: Application) -> None:
-        app.add_handler(CallbackQueryHandler(self.view_stats, "view_stats"))
+        app.add_handler(CallbackQueryHandler(self.individual_stats, "individual_stats"))
         app.add_handler(
             CallbackQueryHandler(self.this_week_questions, "this_week_questions")
         )
@@ -30,7 +30,7 @@ class ViewStatsHandler(BaseHandler):
             CallbackQueryHandler(self.all_unique_questions, "all_unique_questions")
         )
 
-    async def view_stats(
+    async def individual_stats(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         query = await self._get_and_answer_query(update)
@@ -160,4 +160,4 @@ class ViewStatsHandler(BaseHandler):
         )
 
     def __get_back_keyboard(self) -> list[list[InlineKeyboardButton]]:
-        return [[InlineKeyboardButton(text="Back", callback_data="view_stats")]]
+        return [[InlineKeyboardButton(text="Back", callback_data="individual_stats")]]

@@ -89,7 +89,9 @@ class CompleteInterviewHandler(BaseHandler):
             [InlineKeyboardButton(text="Add question", callback_data="add_question")],
             [
                 InlineKeyboardButton(text="Opt in/out", callback_data="opt_in_out"),
-                InlineKeyboardButton(text="View stats", callback_data="view_stats"),
+                InlineKeyboardButton(
+                    text="View stats", callback_data="individual_stats"
+                ),
             ],
         ]
         if show_interview_button:

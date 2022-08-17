@@ -153,7 +153,9 @@ class OptInOutHandler(BaseHandler):
                     InlineKeyboardButton(
                         text="Opt in/out again", callback_data="opt_in_out"
                     ),
-                    InlineKeyboardButton(text="View stats", callback_data="view_stats"),
+                    InlineKeyboardButton(
+                        text="View stats", callback_data="individual_stats"
+                    ),
                 ],
             ]
         )
