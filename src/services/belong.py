@@ -1,4 +1,4 @@
-from ..database import Belong, User, session_scope
+from ..database import Belong, Chat, User, session_scope
 from ..utils import UUID_RULE, OptInOutType, ResourceNotFoundException, validate_input
 
 BELONG_SCHEMA = {"user_id": UUID_RULE, "chat_id": UUID_RULE}
@@ -7,12 +7,9 @@ IS_OPTED_OUT_SCHEMA = {
     "chat_id": UUID_RULE,
     "opt_in_out_type": {"required": True},
 }
-OPT_IN_OUT_SCHEMA = {
-    "user_id": UUID_RULE,
-    "chat_id": UUID_RULE,
-    "should_opt_out": {"type": "boolean", "required": True},
-    "opt_in_out_type": {"required": True},
-}
+OPT_IN_OUT_SCHEMA = IS_OPTED_OUT_SCHEMA
+GET_USERS_IN_CHAT_SCHEMA = {"chat_id": UUID_RULE}
+GET_CHATS_FOR_USER_SCHEMA = {"user_id": UUID_RULE}
 
 
 class BelongService:
@@ -46,7 +43,7 @@ class BelongService:
             session.commit()
             return belong is not None
 
-    @validate_input({"chat_id": UUID_RULE})
+    @validate_input(GET_USERS_IN_CHAT_SCHEMA)
     def get_users_in_chat(self, chat_id: str) -> list[dict]:
         with session_scope() as session:
             user_belong_pairs: list[tuple[User, Belong]] = (
@@ -64,6 +61,17 @@ class BelongService:
                 for (u, b) in user_belong_pairs
             ]
 
+    @validate_input(GET_CHATS_FOR_USER_SCHEMA)
+    def get_chats_for_user(self, user_id: str) -> list[dict]:
+        with session_scope() as session:
+            chat_belong_pairs: list[tuple[Chat, Belong]] = (
+                session.query(Chat, Belong)
+                .join(Belong, Belong.chat_id == Chat.id)
+                .filter(Belong.user_id == user_id)
+                .all()
+            )
+            return [c.as_dict() for (c, _) in chat_belong_pairs]
+
     @validate_input(BELONG_SCHEMA)
     def is_user_inside_chat(self, user_id: str, chat_id: str) -> bool:
         with session_scope() as session:
@@ -75,9 +83,9 @@ class BelongService:
             return belong is not None
 
     @validate_input(BELONG_SCHEMA)
-    def is_user_opted_out(
-        self, user_id: str, chat_id: str, opt_in_out_type: OptInOutType
-    ) -> bool:
+    def get_opt_in_out_status(
+        self, user_id: str, chat_id: str
+    ) -> dict[OptInOutType, bool]:
         with session_scope() as session:
             belong: Belong | None = (
                 session.query(Belong)
@@ -86,17 +94,18 @@ class BelongService:
             )
             if belong is None:
                 raise ResourceNotFoundException()
-            if opt_in_out_type == OptInOutType.QUESTIONS:
-                return belong.is_opted_out_of_questions
-            return belong.is_opted_out_of_interviews
+
+            return {
+                OptInOutType.QUESTIONS: belong.is_opted_out_of_questions,
+                OptInOutType.INTERVIEWS: belong.is_opted_out_of_interviews,
+            }
 
     @validate_input(OPT_IN_OUT_SCHEMA)
-    def opt_in_out(
+    def toggle_opt_in_out(
         self,
         user_id: str,
         chat_id: str,
         opt_in_out_type: OptInOutType,
-        should_opt_out: bool,
     ) -> dict:
         with session_scope() as session:
             belong: Belong | None = (
@@ -108,9 +117,11 @@ class BelongService:
                 raise ResourceNotFoundException()
 
             if opt_in_out_type == OptInOutType.QUESTIONS:
-                belong.is_opted_out_of_questions = should_opt_out
+                belong.is_opted_out_of_questions = not belong.is_opted_out_of_questions
             else:
-                belong.is_opted_out_of_interviews = should_opt_out
+                belong.is_opted_out_of_interviews = (
+                    not belong.is_opted_out_of_interviews
+                )
 
             session.commit()
             return belong.as_dict()
