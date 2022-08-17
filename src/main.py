@@ -15,6 +15,7 @@ from src.handlers import (
     MembersHandler,
     MigrateHandler,
     NewChatMembersHandler,
+    OptInOutHandler,
     PaginationHandler,
     StartHandler,
     UnknownMessageHandler,
@@ -57,7 +58,7 @@ def main() -> None:
     AddQuestionHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     CompleteInterviewHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     ViewStatsHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
-    # Opting in and out
+    OptInOutHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
 
     # Group chat command handlers
     MembersHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)

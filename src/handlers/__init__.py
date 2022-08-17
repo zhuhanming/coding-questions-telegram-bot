@@ -7,6 +7,7 @@ from .left_chat_member import LeftChatMemberHandler
 from .members import MembersHandler
 from .migrate import MigrateHandler
 from .new_chat_members import NewChatMembersHandler
+from .opt_in_out import OptInOutHandler
 from .pagination import PaginationHandler
 from .start import StartHandler
 from .unknown_message import UnknownMessageHandler
