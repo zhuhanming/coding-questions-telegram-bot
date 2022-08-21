@@ -1,7 +1,7 @@
 from warnings import filterwarnings
 
 from telegram import BotCommandScopeAllGroupChats, BotCommandScopeDefault
-from telegram.ext import Application
+from telegram.ext import Application, PicklePersistence
 from telegram.warnings import PTBUserWarning
 
 from src.config import APP_CONFIG
@@ -46,11 +46,13 @@ def main() -> None:
     # Initialise the app components
     APP_SERVICE = AppService()
     APP_HELPER = AppHelper()
+    persistence = PicklePersistence(filepath="persistence")
 
     # Create the Application and pass it the bot's token.
     application = (
         Application.builder()
         .token(APP_CONFIG["BOT_ACCESS_TOKEN"])
+        .persistence(persistence)
         .post_init(post_init)
         .build()
     )
