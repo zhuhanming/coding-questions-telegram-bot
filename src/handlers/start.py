@@ -23,6 +23,7 @@ class StartHandler(BaseHandler):
             return
 
         self.helper.logger.info(f"User started: {user.full_name}")
+        await self._clear_previous_message_reply_markup(update, context)
         await self._reply_text(
             context,
             message,
