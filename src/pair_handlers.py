@@ -8,7 +8,7 @@ from telegram import (
     ReplyKeyboardRemove,
     Update,
 )
-from telegram.error import Unauthorized
+from telegram.error import Unauthorized, BadRequest
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -22,7 +22,7 @@ from src.exceptions import InvalidUserDataException
 from src.services import SERVICES
 from src.utils import MONTH_ALL_SUMMARY_STRFTIME_FORMAT, reply_html, unwrap
 
-SINGLE_CONFIRM, LIST_CONFIRM = range(2)
+xSINGLE_CONFIRM, LIST_CONFIRM = range(2)
 CONFIRM_SELECTION, SWAP_COMPLETED = range(2)
 CONFIRM_KEYBOARD = [["Yes"], ["No"]]
 GET_STARTED_KEYBOARD = [
@@ -53,9 +53,16 @@ def notify_partner(context: CallbackContext, pair: dict):
                 pair["self_name"], pair["chat_title"]
             ),
         )
-    except Unauthorized:
+    except (Unauthorized, BadRequest):
+        self_dict = SERVICES.user_service.get_user_by_id(id=pair["self_id"])
         SERVICES.logger.info(
             f"Could not notify partner: {pair['partner_name']} [{pair['chat_title']}]",
+        )
+        context.bot.send_message(
+            chat_id=self_dict["telegram_id"],
+            text=f"We tried to notify your partner {pair['partner_name']} [{pair['chat_title']}] about this completion but faced some issues doing so.\n"
+            "Likely, they have yet to start a conversation with me.\n"
+            "Do you mind helping to ask them to do so? Thanks in advance!",
         )
 
 
