@@ -39,6 +39,8 @@ async def post_init(application: Application) -> None:
     )
 
 
+# TODO: Improve logging
+# TODO: Make app more friendly
 def main() -> None:
     """Start the bot."""
     # Initialise the app components
