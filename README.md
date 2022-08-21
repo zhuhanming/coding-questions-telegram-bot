@@ -24,10 +24,10 @@ pyenv install 3.10.6 # >= 3.10
 pyenv local 3.10.6
 ```
 
-Install [Poetry](https://python-poetry.org), version 1.1.6.
+Install [Poetry](https://python-poetry.org), version 1.1.14.
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | env POETRY_VERSION=1.1.6 python -
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | env POETRY_VERSION=1.1.14 python -
 ```
 
 Install dependencies by running this in the project root.
@@ -76,51 +76,26 @@ Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scri
 
 ### Individual
 
-`/start`: To get started with the bot.
+`/start`: To get started with the bot. If run in a group chat, you would be directed to the private chat. This is the entry point for all actions performed at the private chat level.
 
-`/add_question`: To add a new question that you have completed. This will initiate a conversation.
+#### Operations Supported
 
-`/week`: To see a summary of the questions that you have completed this week. Note that repeated questions can appear, if you chose to reattempt the same question.
-
-`/last_week`: To see a summary of the questions that you have completed last week.
-
-`/month`: To see a summary of the questions that you have completed this month.
-
-`/all`: To see a summary of all questions that you have completed (and registered with the bot).
-
-`/all_unique`: To see a summary of all _unique_ questions that you have completed (and registered with the bot). Uniqueness is determined by the name of the question and the platform the question is from, and its difficulty.
-
-`/past_pairs`: To view all mock interview partners that you have practiced with.
-
-`/complete_interview`: To mark your mock interview as completed for the week. This will complete it for your partner as well.
+- Adding a question
+- Completing a mock interview
+- Viewing stats
+- Opting in and out of groups
 
 ### Group
 
-`/members`: To see the list of members who are recognised by the bot to belong to that group chat. This is due to a limitation of Telegram that prevents bots from directly accessing the list of members in a chat.
+`/members`: To see the list of members who are recognised by the bot to belong to that group chat. This is due to a limitation of Telegram that prevents bots from directly accessing the list of members in a chat. This list is paginated.
 
 `/add_me`: To add yourself to the list of members in the chat.
 
-`/week`: To see a summary of how many questions each chat group member has completed this week.
+`/stats`: To see group stats. This encompasses both questions and interview stats for both this week and the week before. (Might consider supporting viewing of stats even before last week)
 
-`/last_week`: To see a summary of how many questions each chat group member has completed last week.
+`/interview_pairs`: To generate the mock interview pairs for the week, if not already generated. Else, it will instead show a summary of existing pairs. There will be options for pagination + swapping people.
 
-`/week_detailed`: To see a detailed list of the questions that each chat group member has completed this week.
-
-`/month`: To see a summary of how many questions each chat group member has completed this month.
-
-`/all`: To see a summary of how many questions each chat group member has completed ever (and registered with the bot).
-
-`/all_unique`: To see a summary of how many _unique_ questions each chat group member has completed (and registered with the bot). Uniqueness is determined by the name of the question, the platform the question is from, and its difficulty.
-
-`/interview_pairs`: To generate the mock interview pairs for the week. Once generated, it should not change for the rest of the week. Subsequent usage of the same command will instead show a summary of which pairs have completed their mock interviews, and which have not.
-
-`/interview_pairs_last_week`: To show a summary of last week's pairs, on which pairs have completed their mock interviews, and which have not.
-
-`/swap_pairs`: To swap two users. Command will work so long at least one user is currently paired, and the two users are not paired together.
-
-`/opt_out`: Opts you out of interview pairing and weekly question tracking within this chat group.
-
-`/opt_in`: Reverse of `/opt_out`.
+`/config`: To configure settings. Will only work for group admins. Allow for configuring number of questions to complete per week and weekly reminders.
 
 ### Additional Functionalities + TODO
 

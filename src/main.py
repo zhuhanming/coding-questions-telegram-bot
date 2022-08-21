@@ -66,8 +66,7 @@ def main() -> None:
     MembersHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     AddMeHandler(APP_SERVICE, APP_HELPER, APP_CONFIG).bind(application)
     # Stats - handle questions + interviews, this week + last week
-    # Generate pairs - allow for regeneration aka reshuffling
-    # Swap partners
+    # Generate pairs - allow for swapping
     # Settings
 
     # Chat status update handlers
