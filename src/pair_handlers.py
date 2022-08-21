@@ -8,7 +8,7 @@ from telegram import (
     ReplyKeyboardRemove,
     Update,
 )
-from telegram.error import Unauthorized, BadRequest
+from telegram.error import BadRequest, Unauthorized
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -22,7 +22,7 @@ from src.exceptions import InvalidUserDataException
 from src.services import SERVICES
 from src.utils import MONTH_ALL_SUMMARY_STRFTIME_FORMAT, reply_html, unwrap
 
-xSINGLE_CONFIRM, LIST_CONFIRM = range(2)
+SINGLE_CONFIRM, LIST_CONFIRM = range(2)
 CONFIRM_SELECTION, SWAP_COMPLETED = range(2)
 CONFIRM_KEYBOARD = [["Yes"], ["No"]]
 GET_STARTED_KEYBOARD = [
