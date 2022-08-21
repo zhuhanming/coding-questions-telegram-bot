@@ -39,8 +39,8 @@ poetry install
 Setup or reset database (make sure you have Postgres installed first!).
 
 ```bash
-./setup_db.sh   # Modify the default config to suit your needs
-./run_migrations.sh
+make setup_db # Modify the PSQL_USER in Makefile to suit your needs
+make run_migrations
 ```
 
 Add environment variables from the default values.
@@ -52,25 +52,25 @@ cp .env.default .env
 ### Start App
 
 ```bash
-./launch.sh
+make launch
 ```
 
 ### Test
 
 ```bash
-./test.sh
+make test
 ```
 
 ### Lint
 
 ```bash
-./lint.sh       # Just check, used in CI
-./lint_fix.sh   # Fix issues
+make lint     # Just check, used in CI
+make lint_fix # Fix issues
 ```
 
 ### Deployment Scripts
 
-Note that `$MANUAL_PATH`, which is the path to `poetry`, can be provided to scripts that need to be run on the deployment server. This is due to an issue with the related GitHub SSH action being unable to locate `poetry` otherwise.
+Note that `POETRY_PATH` can be provided to Makefile commands that need to be run on the deployment server. This is due to an issue with the related GitHub SSH action being unable to locate `poetry` otherwise.
 
 ## Commands Available
 

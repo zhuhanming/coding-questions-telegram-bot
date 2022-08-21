@@ -4,14 +4,13 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "*.md"
+      - '*.md'
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
         python-version: [3.10]
-        poetry-version: [1.1.6]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -50,8 +49,7 @@ jobs:
         run: poetry install
 
       - name: Run tests
-        run: |
-          poetry run pytest
+        run: make test
 
   deploy:
     runs-on: ubuntu-latest
@@ -71,6 +69,6 @@ jobs:
             ${{ secrets.POETRY_PATH }} install
             chmod +x ./backups/pg_backup.sh
             ./backups/pg_backup.sh ${{ secrets.REMOTE_DIR }}
-            env MANUAL_PATH=1 ./run_migrations.sh ${{ secrets.POETRY_PATH }}
+            make run_migrations POETRY_PATH=${{ secrets.POETRY_PATH }}
             pm2 restart coding-questions-bot
             echo =========== Deployment Completed ===========
