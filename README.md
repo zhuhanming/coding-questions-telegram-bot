@@ -27,7 +27,7 @@ pyenv local 3.9.4
 Install [Poetry](https://python-poetry.org), version 1.1.6.
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | env POETRY_VERSION=1.1.6 python -
+curl -sSL https://install.python-poetry.org | env POETRY_VERSION=1.1.6 python -
 ```
 
 Install dependencies by running this in the project root.
