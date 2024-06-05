@@ -550,7 +550,7 @@ class QuestionInfoService:
                 _ = self.driver.find_element(
                     By.CSS_SELECTOR,
                     (
-                        f"span.difficulty-label.label-{difficulty}"
+                        f"div.text-difficulty-{difficulty}"
                         if is_leetcode
                         else f"div.difficulty-block > p.difficulty-{difficulty}"
                     ),
