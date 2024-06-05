@@ -6,10 +6,10 @@ from typing import Optional
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import or_
-from webdriver_manager.chrome import ChromeDriverManager
 
 from src.config import APP_CONFIG, Config
 from src.database import (
@@ -485,15 +485,13 @@ class InterviewPairService:
 class QuestionInfoService:
     def __init__(self, config: Config):
         self.config = config
-        chrome_options = Options()
+        chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument(
             "user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
         )
-        self.driver = webdriver.Chrome(
-            ChromeDriverManager().install(), options=chrome_options
-        )
+        self.driver = webdriver.Chrome(service=Service(), options=chrome_options)
 
     @validate_input({"url": QUESTION_URL_RULE, "is_leetcode": {"type": "boolean"}})
     def get_question_info(self, url: str, is_leetcode: bool) -> QuestionInfo:
@@ -549,12 +547,13 @@ class QuestionInfoService:
         for difficulty in difficulties:
             difficulty = difficulty.title() if is_leetcode else difficulty
             try:
-                _ = self.driver.find_element_by_css_selector(
+                _ = self.driver.find_element(
+                    By.CSS_SELECTOR,
                     (
                         f"span.difficulty-label.label-{difficulty}"
                         if is_leetcode
                         else f"div.difficulty-block > p.difficulty-{difficulty}"
-                    )
+                    ),
                 )
                 return difficulty.lower()
             except NoSuchElementException:

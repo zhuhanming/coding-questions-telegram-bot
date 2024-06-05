@@ -159,9 +159,11 @@ def interview_pairs(update: Update, _: CallbackContext) -> None:
 
     summary = generate_group_interview_summary(
         pairs,
-        [SERVICES.user_service.get_user_by_id(id=extra_user_id)]
-        if extra_user_id is not None
-        else None,
+        (
+            [SERVICES.user_service.get_user_by_id(id=extra_user_id)]
+            if extra_user_id is not None
+            else None
+        ),
     )
     reply_html(update, summary)
 
@@ -188,9 +190,11 @@ def interview_pairs_last_week(update: Update, _: CallbackContext) -> None:
 
     summary = generate_group_interview_summary(
         pairs,
-        SERVICES.user_service.get_users_by_id(ids=list(unpaired_users))
-        if len(unpaired_users) > 0
-        else None,
+        (
+            SERVICES.user_service.get_users_by_id(ids=list(unpaired_users))
+            if len(unpaired_users) > 0
+            else None
+        ),
     )
     reply_html(update, summary)
 
@@ -535,9 +539,11 @@ def swap_completed(update: Update, context: CallbackContext) -> int:
 
     summary = generate_group_interview_summary(
         pairs,
-        SERVICES.user_service.get_users_by_id(ids=list(unpaired_users))
-        if len(unpaired_users) > 0
-        else None,
+        (
+            SERVICES.user_service.get_users_by_id(ids=list(unpaired_users))
+            if len(unpaired_users) > 0
+            else None
+        ),
     )
     reply_html(update, summary)
     context.chat_data.clear()
